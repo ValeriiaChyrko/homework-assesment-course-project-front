@@ -1,50 +1,26 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Automated Code Evaluation System
 
-Currently, two official plugins are available:
+### Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This project is an automated system designed to evaluate student-written code by running unit tests and providing feedback based on the test results. The system supports code submission, test execution, and automated grading, ensuring an objective and efficient process for assessing programming assignments.
 
-## Expanding the ESLint configuration
+### Features
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
++ **Unit Test Execution:** Automatically runs unit tests on submitted code to check for correctness.
++ **Automated Grading:** Grades assignments based on the percentage of tests passed, along with additional points for code compilation.
++ **Feedback Generation:** Provides detailed feedback to students, highlighting areas where the code failed and offering guidance on improvements.
++ **Attempt Tracking:** Logs multiple attempts for each assignment, enabling both instructors and students to review performance over time.
 
-- Configure the top-level `parserOptions` property like this:
+### Repository Management
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+The repository for this project is hosted and managed on GitHub. GitHub takes full responsibility for hosting, version control, and collaboration features such as pull requests and issue tracking. All updates, patches, and contributions should be submitted through GitHub. To ensure the repository’s security, GitHub provides automatic backup and recovery options.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+For any collaboration or issues, the standard GitHub workflows should be used, including:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
++ Pull Requests: Submit your changes for review via GitHub's pull request system.
++ Issue Tracking: Report bugs or request new features using the issue tracker provided by GitHub.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+### Contact
+
+For any questions or support, please reach out to valeriia.chyrko@oa.edu.ua.
