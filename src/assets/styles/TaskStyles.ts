@@ -28,3 +28,31 @@ export const AttemptTitle = styled(Typography)({
     fontSize: 18,
     color: '#000000'
 });
+
+export const AttemptLabel = styled(Typography)({
+    fontFamily: 'Lora, serif',
+    fontWeight: 400,
+    fontSize: 16,
+    color: '#000000'
+});
+
+export const AttemptLabelBold = styled(Typography)({
+    fontFamily: 'Lora, serif',
+    fontWeight: 600,
+    fontSize: 16,
+    color: '#000000'
+});
+
+export const InfoBlockTitle = styled(Typography)({
+    fontFamily: 'Lora, serif',
+    fontWeight: 400,
+    fontSize: 15,
+    color: '#000000',
+});
+
+export const InfoBlockSubtitle = styled(Typography)({
+    fontFamily: 'Lora, serif',
+    fontWeight: 600,
+    fontSize: 18,
+    color: '#000000',
+});

@@ -1,10 +1,9 @@
-import {Box} from '@mui/material';
-import StatusBox from "./TaskStatusBox.tsx";
-import TaskButton from "./TaskButtons.tsx";
-import {TaskInformationText} from "../styles/TaskStyles.ts";
+import { Box } from '@mui/material';
+import StatusBox from "../Boxes/TaskStatusBox.tsx";
+import TaskButton from "../Buttons/TaskButtons.tsx";
+import { TaskInformationText } from "../../assets/styles/TaskStyles.ts";
 
-function TaskHeader({ taskStatus }: { taskStatus: string }) {
-    const score = 100;
+function TaskHeader({ taskName, score, taskStatus }: { taskName: string, score: number, taskStatus: string }) {
 
     return (
         <Box
@@ -28,7 +27,7 @@ function TaskHeader({ taskStatus }: { taskStatus: string }) {
                 paddingX="40px"
             >
                 <Box display="flex" alignItems="center">
-                    <TaskInformationText>Практичне завдання № 1</TaskInformationText>
+                    <TaskInformationText>{taskName}</TaskInformationText>
                     {taskStatus === 'finished' && (
                         <StatusBox value={score} />
                     )}
@@ -37,7 +36,7 @@ function TaskHeader({ taskStatus }: { taskStatus: string }) {
                 <TaskButton status={taskStatus} isDisabled={false} />
             </Box>
         </Box>
-);
+    );
 }
 
 export default TaskHeader;

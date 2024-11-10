@@ -1,23 +1,11 @@
-﻿import GitHubRepositoryIcon from '../assets/repository-info.svg';
-import GitHubBranchIcon from '../assets/branch-info.svg';
+﻿import GitHubRepositoryIcon from '../../assets/images/repository-info.svg';
+import GitHubBranchIcon from '../../assets/images/branch-info.svg';
 import {Box} from "@mui/material";
-import {styled} from "@mui/system";
-import TaskButton from "./TaskButtons.tsx";
+import TaskButton from "../Buttons/TaskButtons.tsx";
 import InfoBlock from "./InfoBlock.tsx";
-import {TaskInformationText} from "../styles/TaskStyles.ts";
-
-const TaskInformationContainer = styled(Box)({
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    paddingTop: '40px',
-});
-const InfoSection = styled(Box)({
-    display: 'flex',
-    justifyContent: 'flex-start',
-    width: '100%',
-    marginBottom: '40px'
-});
+import {TaskInformationText} from "../../assets/styles/TaskStyles.ts";
+import {InfoSection, TaskInformationContainer} from "../../assets/styles/SectionStyles.ts";
+import {TASK_SOLUTION} from "../../assets/constants/texts.ts";
 
 function TaskSolution({ taskStatus }: { taskStatus: string }) {
     return (
@@ -38,12 +26,12 @@ function TaskSolution({ taskStatus }: { taskStatus: string }) {
                 padding="40px"
             >
                 <TaskInformationText>
-                    Рішення
+                    {TASK_SOLUTION.title}
                 </TaskInformationText>
                 <TaskInformationContainer>
                     <InfoSection>
-                        <InfoBlock imgSrc={GitHubRepositoryIcon} title="Мій репозиторій" subtitle="fancy-task" />
-                        <InfoBlock imgSrc={GitHubBranchIcon} title="Гілка" subtitle="master" />
+                        <InfoBlock imgSrc={GitHubRepositoryIcon} title={TASK_SOLUTION.githubRepoLabel} subtitle="fancy-task" />
+                        <InfoBlock imgSrc={GitHubBranchIcon} title={TASK_SOLUTION.githubBranchLabel} subtitle="master" />
                     </InfoSection>
 
                     <TaskButton status={taskStatus} isDisabled={false}/>

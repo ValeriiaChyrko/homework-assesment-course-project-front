@@ -1,12 +1,11 @@
-﻿import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import TaskHeader from '../components/Header/TaskHeader.tsx';
 import TaskInformation from '../components/Containers/TaskInformation.tsx';
-import {Box, CircularProgress} from '@mui/material';
-import TaskSolution from "../components/Containers/TaskSolution.tsx";
-import {RespondAssignmentDto} from "../models/RespondAssignmentDto.ts";
-import {fetchTask} from "../services/taskService.ts";
+import { Box, CircularProgress } from '@mui/material';
+import { RespondAssignmentDto } from "../models/RespondAssignmentDto.ts";
+import { fetchTask } from "../services/taskService.ts";
 
-const OnGoingPage: React.FC = () => {
+const StartTaskPage: React.FC = () => {
     const [assignment, setAssignment] = useState<RespondAssignmentDto | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -48,13 +47,12 @@ const OnGoingPage: React.FC = () => {
                 <TaskHeader
                     taskName={assignment.title}
                     score={assignment.maxScore}
-                    taskStatus='onGoing'
+                    taskStatus='started'
                 />
             )}
-            {assignment && <TaskInformation task={assignment} taskStatus='onGoing' lastAttempt={null}/>}
-            <TaskSolution taskStatus='onGoing'/>
+            {assignment && <TaskInformation task={assignment} taskStatus='started' lastAttempt={null}/>}
         </Box>
     );
 };
 
-export default OnGoingPage;
+export default StartTaskPage;
