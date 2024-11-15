@@ -1,4 +1,4 @@
-﻿import { Typography } from "@mui/material";
+﻿import {MenuItem, Typography} from "@mui/material";
 import { styled } from "@mui/system";
 
 export const TaskInformationText = styled(Typography)({
@@ -56,3 +56,11 @@ export const InfoBlockSubtitle = styled(Typography)({
     fontSize: 18,
     color: '#000000',
 });
+
+export const StyledMenuItem = styled(MenuItem)(() => ({
+    fontFamily: 'Lora, serif',
+    fontWeight: 600,
+    fontSize: 18,
+    color: '#000000',
+    padding: 0,
+}));

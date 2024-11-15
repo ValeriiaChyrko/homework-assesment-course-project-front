@@ -3,13 +3,13 @@ import DateTimeIcon from '../../assets/images/date-time-icon.svg';
 import FinalScoreIcon from '../../assets/images/final-score-icon.svg';
 import { Box } from "@mui/material";
 import InfoBlock from "./InfoBlock.tsx";
-import { TaskDescriptionText, TaskInformationText } from "../../assets/styles/TaskStyles.ts";
+import { TaskDescriptionText, TaskInformationText } from "../../assets/styles/TextStyles.ts";
 import { formatDate } from "../../assets/styles/DateAndTimeStyles.ts";
 import { TASK_DESCRIPTION } from "../../assets/constants/texts.ts";
 import { InfoSection, TaskInformationContainer } from "../../assets/styles/SectionStyles.ts";
 import { TaskInformationProps } from "../../types/TaskInformationProps.ts";
 
-function TaskInformation({ task, taskStatus, lastAttempt }: TaskInformationProps) {
+function TaskInformation({ task, taskStatus, lastAttempt, student }: TaskInformationProps) {
     if (!task) {
         return <Box>No task information available.</Box>;
     }
@@ -51,7 +51,11 @@ function TaskInformation({ task, taskStatus, lastAttempt }: TaskInformationProps
 
                 <TaskInformationContainer>
                     <InfoSection>
-                        <InfoBlock imgSrc={GitHubIcon} title={TASK_DESCRIPTION.githubLink} subtitle="ValeriiaChyrko" />
+                        <InfoBlock
+                            imgSrc={GitHubIcon}
+                            title={TASK_DESCRIPTION.githubLink}
+                            subtitle={student?.githubUsername ?? "User"}
+                        />
                         <InfoBlock
                             imgSrc={DateTimeIcon}
                             title={taskStatus === 'finished' ? TASK_DESCRIPTION.finishedDateLabel : TASK_DESCRIPTION.deadlineLabel}

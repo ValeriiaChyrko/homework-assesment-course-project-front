@@ -5,7 +5,6 @@
     email: string;
     password: string;
     githubUsername: string;
-    githubAccessToken: string;
     githubProfileUrl: string;
     githubPictureUrl?: string;
     createdAt: Date;

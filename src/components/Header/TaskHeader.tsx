@@ -1,9 +1,9 @@
 import { Box } from '@mui/material';
 import StatusBox from "../Boxes/TaskStatusBox.tsx";
 import TaskButton from "../Buttons/TaskButtons.tsx";
-import { TaskInformationText } from "../../assets/styles/TaskStyles.ts";
+import { TaskInformationText } from "../../assets/styles/TextStyles.ts";
 
-function TaskHeader({ taskName, score, taskStatus }: { taskName: string, score: number, taskStatus: string }) {
+function TaskHeader({ taskName, score, taskStatus, isClosed }: { taskName: string, score: number, taskStatus: string, isClosed: boolean }) {
 
     return (
         <Box
@@ -33,7 +33,7 @@ function TaskHeader({ taskName, score, taskStatus }: { taskName: string, score: 
                     )}
                 </Box>
 
-                <TaskButton status={taskStatus} isDisabled={false} />
+                <TaskButton status={taskStatus} isDisabled={isClosed} />
             </Box>
         </Box>
     );

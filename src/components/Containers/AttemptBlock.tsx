@@ -3,7 +3,7 @@ import IncorrectIcon from '../../assets/images/incorrect-icon.svg';
 import { Box } from "@mui/material";
 import StatusBox from "../Boxes/TaskStatusBox.tsx";
 import CheckStatusBox from "../Boxes/TaskCheckStatusBox.tsx";
-import { AttemptTitle, SectionTitle } from "../../assets/styles/TaskStyles.ts";
+import { AttemptTitle, SectionTitle } from "../../assets/styles/TextStyles.ts";
 import {
     ATTEMPT_RESULT_BLOCKS,
     ATTEMPT_RESULT_MAIN_BLOCKS,

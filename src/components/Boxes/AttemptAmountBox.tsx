@@ -1,5 +1,5 @@
 ﻿import {TASK_ATTEMPT_AMOUNT_LABEL} from "../../assets/constants/texts.ts";
-import {AttemptLabel, AttemptLabelBold} from "../../assets/styles/TaskStyles.ts";
+import {AttemptLabel, AttemptLabelBold} from "../../assets/styles/TextStyles.ts";
 import {StyledAttemptAmountBox} from "../../assets/styles/SectionStyles.ts";
 
 

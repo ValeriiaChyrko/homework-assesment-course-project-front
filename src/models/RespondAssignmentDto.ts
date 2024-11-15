@@ -5,6 +5,7 @@ export interface RespondAssignmentDto {
     ownerId: string;
     title: string;
     description?: string;
+    repositoryName: string;
     deadline: Date;
     maxScore: number;
     maxAttemptsAmount: number;

@@ -1,5 +1,5 @@
 ﻿import { Box } from "@mui/material";
-import { TaskInformationText } from "../../assets/styles/TaskStyles.ts";
+import { TaskInformationText } from "../../assets/styles/TextStyles.ts";
 import AttemptAmountBox from "../Boxes/AttemptAmountBox.tsx";
 import AttemptBlock from "./AttemptBlock.tsx";
 import { TASK_RESULTS } from "../../assets/constants/texts.ts";
@@ -21,9 +21,10 @@ function TaskReviewResults({ task }: TaskReviewResultProps) {
     };
 
     useEffect(() => {
-        const taskId = "12a0b3e6-a106-43dd-b57f-d38ba6c62c4e";
-        fetchAttemptData(taskId);
-    }, []);
+        if (task){
+            fetchAttemptData(task?.id);
+        }
+    }, [task]);
 
     return (
         <Box
