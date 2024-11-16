@@ -1,7 +1,6 @@
 ﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BaseButton } from "../../assets/styles/ButtonStyles.ts";
-import { RequestAttemptDto } from "../../models/RequestAttemptDto.ts";
 import {
     fetchProjectCompilationVerification,
     fetchProjectQualityVerification,
@@ -9,6 +8,7 @@ import {
 } from "../../services/gitHubService.ts";
 import { createRequestAttempt } from "../../services/attemptService.ts";
 import {Box} from "@mui/material";
+import {TaskButtonProps} from "../../types/TaskButtonProps.ts";
 
 const getButtonColorForStatus = (status: string) => {
     switch (status) {
@@ -45,7 +45,7 @@ const getButtonColorForStatus = (status: string) => {
     }
 };
 
-const TaskButton = ({ status, isDisabled, attempt }: { status: string; isDisabled?: boolean; attempt?: RequestAttemptDto | null }) => {
+const TaskButton = ({ status, isDisabled, attempt, task, owner }: TaskButtonProps) => {
     const navigate = useNavigate();
     const { backgroundColor, color, hoverColor } = getButtonColorForStatus(status);
 
@@ -54,24 +54,39 @@ const TaskButton = ({ status, isDisabled, attempt }: { status: string; isDisable
     const handleSubmission = async () => {
         setLoading(true);
         try {
-            if (attempt) {
+            if (attempt && task) {
                 attempt.compilationScore = await fetchProjectCompilationVerification(attempt.studentId, attempt.assignmentId, attempt.branchName);
-                attempt.testsScore = await fetchProjectTestsVerification(attempt.studentId, attempt.assignmentId, attempt.branchName);
-                attempt.qualityScore = await fetchProjectQualityVerification(attempt.studentId, attempt.assignmentId, attempt.branchName);
-                console.log(attempt);
+                const minCompilationScore = task.compilationSection?.minScore ?? 0;
+                if (attempt.compilationScore > minCompilationScore) {
+                    attempt.testsScore = await fetchProjectTestsVerification(attempt.studentId, attempt.assignmentId, attempt.branchName);
+                    attempt.qualityScore = await fetchProjectQualityVerification(attempt.studentId, attempt.assignmentId, attempt.branchName);
+                }
                 await createRequestAttempt(attempt);
             }
         } catch (error) {
             console.error("Помилка при отриманні балів за спробу:", error);
         } finally {
             setLoading(false);
+            sessionStorage.setItem('scrollToBottom', 'true');
             navigate(0);
         }
     };
 
+    const generateGitHubUrl = (ownerGithubUsername: string, repositoryName: string) => {
+        return `https://github.com/${ownerGithubUsername}/${repositoryName}`;
+    };
+
+    const handleRepositoryOpen = async () => {
+        if (task && owner){
+            const gitHubUrl = generateGitHubUrl(owner.githubUsername, task.repositoryName);
+            window.open(gitHubUrl, '_blank');
+        }
+    }
+
     const handleClick = async () => {
         switch (status) {
             case 'started':
+                await handleRepositoryOpen();
                 navigate('/task-ongoing');
                 break;
             case 'onGoing':
@@ -103,10 +118,9 @@ const TaskButton = ({ status, isDisabled, attempt }: { status: string; isDisable
                 }}
             >
                 {loading ? 'Зачекайте...' :
-                (
-                    status === 'started' ? 'Розпочати' :
-                    status === 'submitted' ? 'Подати роботу' :
-                    status === 'onGoing' ? 'Завершити' : 'Відновити'
+                    (status === 'started' ? 'Розпочати' :
+                     status === 'submitted' ? 'Подати роботу' :
+                     status === 'onGoing' ? 'Завершити' : 'Відновити'
                 )}
             </BaseButton>
         </Box>

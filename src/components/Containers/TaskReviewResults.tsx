@@ -3,28 +3,19 @@ import { TaskInformationText } from "../../assets/styles/TextStyles.ts";
 import AttemptAmountBox from "../Boxes/AttemptAmountBox.tsx";
 import AttemptBlock from "./AttemptBlock.tsx";
 import { TASK_RESULTS } from "../../assets/constants/texts.ts";
-import { useEffect, useState } from "react";
-import { RespondAttemptDto } from "../../models/RespondAttemptDto.ts";
-import { fetchTasksByAssignmentId } from "../../services/attemptService.ts";
 import {TaskReviewResultProps} from "../../types/TaskReviewResultProps.ts";
+import {useEffect} from "react";
 
-function TaskReviewResults({ task }: TaskReviewResultProps) {
-    const [attemptList, setAttemptList] = useState<RespondAttemptDto[] | null>(null);
-
-    const fetchAttemptData = async (taskId: string) => {
-        try {
-            const attemptData: RespondAttemptDto[] = await fetchTasksByAssignmentId(taskId);
-            setAttemptList(attemptData);
-        } catch (err) {
-            console.error("Error fetching attempt data:", err);
-        }
-    };
-
+function TaskReviewResults({ task, attemptList  }: TaskReviewResultProps) {
     useEffect(() => {
-        if (task){
-            fetchAttemptData(task?.id);
+        const shouldScroll = sessionStorage.getItem('scrollToBottom');
+        if (shouldScroll === 'true') {
+            setTimeout(() => {
+                window.scrollTo(0, document.body.scrollHeight);
+                sessionStorage.removeItem('scrollToBottom');
+            }, 300);
         }
-    }, [task]);
+    }, [task, attemptList]);
 
     return (
         <Box

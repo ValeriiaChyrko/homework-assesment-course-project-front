@@ -51,7 +51,7 @@ function AttemptBlock({ attempt, task }: AttemptBlockProps) {
                 {sections.map(({ title, score, minScore, maxScore }) => (
                     <SectionBox key={title}>
                         <img
-                            src={score < minScore ? IncorrectIcon : CorrectIcon}
+                            src={score <= minScore ? IncorrectIcon : CorrectIcon}
                             alt={title}
                             style={{ width: '40px', marginRight: '10px' }}
                         />

@@ -14,8 +14,8 @@ function TaskInformation({ task, taskStatus, lastAttempt, student }: TaskInforma
         return <Box>No task information available.</Box>;
     }
 
-    const score =lastAttempt ? String(lastAttempt.finalScore) : String(task.maxScore);
-    const formattedDeadline = lastAttempt ? formatDate(new Date(lastAttempt.finishedAt)) : formatDate(new Date(task.deadline));
+    const score =lastAttempt && taskStatus === 'finished' ? String(lastAttempt.finalScore) : String(task.maxScore);
+    const formattedDeadline = lastAttempt && taskStatus === 'finished' ? formatDate(new Date(lastAttempt.finishedAt)) : formatDate(new Date(task.deadline));
     const renderDescription = (description: string | undefined) => {
         if (description) {
             return description.split('\n').map((line, index) => (

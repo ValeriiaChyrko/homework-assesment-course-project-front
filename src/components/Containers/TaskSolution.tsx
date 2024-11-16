@@ -37,7 +37,7 @@ const TaskSolution: React.FC<TaskSolutionProps> = ({task, attempt, githubProfile
         }
         if (task?.deadline && task?.maxAttemptsAmount && attempt?.attemptNumber){
             const closed: boolean = Date.now() > new Date(task.deadline).getTime()
-                && attempt.attemptNumber > task.maxAttemptsAmount;
+                || attempt.attemptNumber > task.maxAttemptsAmount;
             setClosed(closed);
         }
     }, [task?.id, githubProfileId, attempt]);

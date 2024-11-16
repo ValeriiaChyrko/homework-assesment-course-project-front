@@ -2,24 +2,25 @@
 import { RespondAssignmentDto } from "../models/RespondAssignmentDto.ts";
 import { fetchTask } from "../services/taskService.ts";
 import { RespondStudentDto } from "../models/RespondStudentDto.ts";
-import { fetchStudent } from "../services/userService.ts";
+import {fetchStudent, fetchTeacher} from "../services/userService.ts";
 import TaskReviewResults from "../components/Containers/TaskReviewResults.tsx";
 import Box from '@mui/material/Box';
 import TaskSolution from "../components/Containers/TaskSolution.tsx";
 import TaskInformation from "../components/Containers/TaskInformation.tsx";
 import TaskHeader from "../components/Header/TaskHeader.tsx";
-import { CircularProgress } from "@mui/material";
 import { TaskPageProps } from "../types/TaskPageProps.ts";
 import { RequestAttemptDto } from "../models/RequestAttemptDto.ts";
 import { RespondAttemptDto } from "../models/RespondAttemptDto.ts";
-import { fetchLastAttemptByAssignmentId } from "../services/attemptService.ts";
+import {fetchLastAttemptByAssignmentId, fetchTasksByAssignmentId} from "../services/attemptService.ts";
+import {RespondTeacherDto} from "../models/RespondTeacherDto.ts";
 
 const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, taskStatus, showSolution, showResults }) => {
     const [assignment, setAssignment] = useState<RespondAssignmentDto | null>(null);
     const [student, setStudent] = useState<RespondStudentDto | null>(null);
+    const [teacher, setTeacher] = useState<RespondTeacherDto | null>(null);
+    const [attemptList, setAttemptList] = useState<RespondAttemptDto[]>([]);
     const [lastAttempt, setLastAttempt] = useState<RespondAttemptDto | null>(null);
     const [newAttempt, setNewAttempt] = useState<RequestAttemptDto | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isClosed, setClosed] = useState<boolean>(true);
 
@@ -35,6 +36,16 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
         }
     };
 
+    const fetchTeacherData = async () => {
+        try {
+            const teacherData: RespondTeacherDto = await fetchTeacher(githubProfileId);
+            setTeacher(teacherData);
+        } catch (err) {
+            console.error("Error fetching student data:", err);
+            setError("Не вдалося отримати дані вчителя.");
+        }
+    };
+
     const fetchStudentData = async () => {
         try {
             const studentData: RespondStudentDto = await fetchStudent(githubProfileId);
@@ -42,6 +53,15 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
         } catch (err) {
             console.error("Error fetching student data:", err);
             setError("Не вдалося отримати дані студента.");
+        }
+    };
+
+    const fetchAttemptData = async () => {
+        try {
+            const attemptData: RespondAttemptDto[] = await fetchTasksByAssignmentId(taskId);
+            setAttemptList(attemptData);
+        } catch (err) {
+            console.error("Error fetching attempt data:", err);
         }
     };
 
@@ -57,13 +77,13 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
 
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
             await Promise.all([
                 fetchAssignmentData(),
                 fetchStudentData(),
+                fetchTeacherData(),
+                fetchAttemptData(),
                 fetchLastAttemptData()
             ]);
-            setLoading(false);
         };
 
         fetchData();
@@ -98,11 +118,11 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
                 zIndex: 1,
             }}
         >
-    {loading && <CircularProgress />}
-    {error && <p>{error}</p>}
-        {assignment && (
+        {error && <p>{error}</p>}
+        {assignment && teacher && (
             <TaskHeader
-                taskName={assignment.title}
+                task={assignment}
+                teacher={teacher}
                 score={lastAttempt?.finalScore ?? 0}
                 taskStatus={taskStatus}
                 isClosed={isClosed}
@@ -112,7 +132,7 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
             <TaskInformation
                 task={assignment}
                 taskStatus={taskStatus}
-                lastAttempt={null}
+                lastAttempt={lastAttempt}
                 student={student}
             />
         )}
@@ -124,7 +144,7 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
             />
         )}
         {showResults && assignment && (
-            <TaskReviewResults task={assignment} />
+            <TaskReviewResults task={assignment} attemptList={attemptList} />
         )}
         </Box>
     );
