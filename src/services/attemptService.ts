@@ -1,9 +1,9 @@
 ﻿import { RespondAttemptDto } from "../models/RespondAttemptDto.ts";
 import {RequestAttemptDto} from "../models/RequestAttemptDto.ts";
 
-export const fetchTasksByAssignmentId = async (assignmentId: string): Promise<RespondAttemptDto[]> => {
+export const fetchTasksByStudent = async (assignmentId: string, studentId: string): Promise<RespondAttemptDto[]> => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/attempts/${assignmentId}/assignment`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/attempts/${assignmentId}/${studentId}/student`);
         if (!response.ok) {
             throw new Error('Помилка при отриманні даних');
         }

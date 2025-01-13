@@ -12,7 +12,7 @@ import { fetchBranches } from "../../services/gitHubService.ts";
 
 const TaskSolution: React.FC<TaskSolutionProps> = ({task, attempt, githubProfileId }) => {
     const [taskStatus] = useState<string>('submitted');
-    const [branch, setBranch] = useState<string>('master');
+    const [branch, setBranch] = useState<string>('');
     const [branchesList, setBranchesList] = useState<string[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -101,7 +101,7 @@ const TaskSolution: React.FC<TaskSolutionProps> = ({task, attempt, githubProfile
                             }
                         />
                     </InfoSection>
-                    <TaskButton status={taskStatus} isDisabled={isClosed} attempt={attempt} />
+                    <TaskButton status={taskStatus} isDisabled={isClosed} attempt={attempt} task={task} />
                 </TaskInformationContainer>
             </Box>
         </Box>

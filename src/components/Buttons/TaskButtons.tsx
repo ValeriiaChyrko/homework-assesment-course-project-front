@@ -1,5 +1,4 @@
-﻿import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { BaseButton } from "../../assets/styles/ButtonStyles.ts";
 import {
     fetchProjectCompilationVerification,
@@ -7,8 +6,9 @@ import {
     fetchProjectTestsVerification
 } from "../../services/gitHubService.ts";
 import { createRequestAttempt } from "../../services/attemptService.ts";
-import {Box} from "@mui/material";
+import {Alert, Box, Snackbar} from "@mui/material";
 import {TaskButtonProps} from "../../types/TaskButtonProps.ts";
+import {useState} from "react";
 
 const getButtonColorForStatus = (status: string) => {
     switch (status) {
@@ -50,10 +50,21 @@ const TaskButton = ({ status, isDisabled, attempt, task, owner }: TaskButtonProp
     const { backgroundColor, color, hoverColor } = getButtonColorForStatus(status);
 
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [showError, setShowError] = useState<boolean>(false);
+
+    const handleClose = () => {
+        setShowError(false);
+    };
 
     const handleSubmission = async () => {
         setLoading(true);
         try {
+            if (!attempt?.branchName){
+                setError("Виберіть гілку перед продовженням.");
+                setShowError(true);
+                return;
+            }
             if (attempt && task) {
                 attempt.compilationScore = await fetchProjectCompilationVerification(attempt.studentId, attempt.assignmentId, attempt.branchName);
                 const minCompilationScore = task.compilationSection?.minScore ?? 0;
@@ -62,13 +73,15 @@ const TaskButton = ({ status, isDisabled, attempt, task, owner }: TaskButtonProp
                     attempt.qualityScore = await fetchProjectQualityVerification(attempt.studentId, attempt.assignmentId, attempt.branchName);
                 }
                 await createRequestAttempt(attempt);
+                navigate(0);
             }
         } catch (error) {
             console.error("Помилка при отриманні балів за спробу:", error);
+            setError("Не вдалося завершити операцію. Спробуйте ще раз.");
+            setShowError(true);
         } finally {
             setLoading(false);
-            sessionStorage.setItem('scrollToBottom', 'true');
-            navigate(0);
+            sessionStorage.setItem("scrollToBottom", "true");
         }
     };
 
@@ -123,6 +136,16 @@ const TaskButton = ({ status, isDisabled, attempt, task, owner }: TaskButtonProp
                      status === 'onGoing' ? 'Завершити' : 'Відновити'
                 )}
             </BaseButton>
+            <Snackbar
+                open={showError}
+                autoHideDuration={8000}
+                onClose={handleClose}
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            >
+                <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                    {error}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

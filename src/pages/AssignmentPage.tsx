@@ -11,7 +11,7 @@ import TaskHeader from "../components/Header/TaskHeader.tsx";
 import { TaskPageProps } from "../types/TaskPageProps.ts";
 import { RequestAttemptDto } from "../models/RequestAttemptDto.ts";
 import { RespondAttemptDto } from "../models/RespondAttemptDto.ts";
-import {fetchLastAttemptByAssignmentId, fetchTasksByAssignmentId} from "../services/attemptService.ts";
+import {fetchLastAttemptByAssignmentId, fetchTasksByStudent} from "../services/attemptService.ts";
 import {RespondTeacherDto} from "../models/RespondTeacherDto.ts";
 
 const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, taskStatus, showSolution, showResults }) => {
@@ -21,6 +21,7 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
     const [attemptList, setAttemptList] = useState<RespondAttemptDto[]>([]);
     const [lastAttempt, setLastAttempt] = useState<RespondAttemptDto | null>(null);
     const [newAttempt, setNewAttempt] = useState<RequestAttemptDto | null>(null);
+    const [ownerGithubProfileId, setOwnerGithubProfileId] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [isClosed, setClosed] = useState<boolean>(true);
 
@@ -28,6 +29,7 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
         try {
             const assignmentData: RespondAssignmentDto = await fetchTask(taskId);
             setAssignment(assignmentData);
+            setOwnerGithubProfileId(assignmentData.ownerId);
             const closed: boolean = Date.now() > new Date(assignmentData.deadline).getTime();
             setClosed(closed);
         } catch (err) {
@@ -38,10 +40,10 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
 
     const fetchTeacherData = async () => {
         try {
-            const teacherData: RespondTeacherDto = await fetchTeacher(githubProfileId);
+            const teacherData: RespondTeacherDto = await fetchTeacher(ownerGithubProfileId);
             setTeacher(teacherData);
         } catch (err) {
-            console.error("Error fetching student data:", err);
+            console.error("Error fetching teacher data:", err);
             setError("Не вдалося отримати дані вчителя.");
         }
     };
@@ -58,7 +60,7 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
 
     const fetchAttemptData = async () => {
         try {
-            const attemptData: RespondAttemptDto[] = await fetchTasksByAssignmentId(taskId);
+            const attemptData: RespondAttemptDto[] = await fetchTasksByStudent(taskId, githubProfileId);
             setAttemptList(attemptData);
         } catch (err) {
             console.error("Error fetching attempt data:", err);
@@ -71,7 +73,6 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
             setLastAttempt(attemptData);
         } catch (err) {
             console.error("Error fetching last attempt data:", err);
-            setError("Не вдалося отримати дані останньої спроби.");
         }
     };
 
@@ -87,7 +88,7 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
         };
 
         fetchData();
-    }, [taskId, githubProfileId]);
+    }, [taskId, githubProfileId, ownerGithubProfileId]);
 
     useEffect(() => {
         if (student && assignment && taskStatus=='onGoing') {
@@ -95,7 +96,7 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
                 studentId: student.gitHubProfileId,
                 assignmentId: assignment.id,
                 attemptNumber: lastAttempt ? lastAttempt.attemptNumber + 1 : 1,
-                branchName: 'master',
+                branchName: '',
                 compilationScore: 0,
                 testsScore: 0,
                 qualityScore: 0
@@ -140,7 +141,7 @@ const AssignmentPage: React.FC<TaskPageProps> = ({ taskId, githubProfileId, task
             <TaskSolution
                 task={assignment}
                 attempt={newAttempt}
-                githubProfileId={student?.gitHubProfileId ?? null}
+                githubProfileId={githubProfileId}
             />
         )}
         {showResults && assignment && (
