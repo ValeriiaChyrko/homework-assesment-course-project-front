@@ -4,12 +4,8 @@ declare module "next-auth" {
     interface Session {
         accessToken?: string;
         user: {
-            attributes?: Record<string, string | number | boolean>;
+            id: string | undefined;
         } & DefaultSession["user"];
-    }
-
-    interface User extends DefaultUser {
-        attributes?: Record<string, string | number | boolean>;
     }
 }
 

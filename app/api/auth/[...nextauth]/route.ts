@@ -74,10 +74,10 @@ export const authOptions: AuthOptions = {
         async session({ session, token }) {
             if (session.user) {
                 session.accessToken = token.accessToken;
-                session.user.attributes = token.userAttributes || {};
+                session.user.id = token.sub;
             }
             return session;
-        },
+        }
     },
 };
 

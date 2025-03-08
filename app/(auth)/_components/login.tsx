@@ -13,7 +13,7 @@ export default function SignIn() {
             if (result?.error) {
                 console.error("Sign-in error:", result.error);
             } else {
-                await router.push('/');
+                router.push('/');
             }
         };
 
