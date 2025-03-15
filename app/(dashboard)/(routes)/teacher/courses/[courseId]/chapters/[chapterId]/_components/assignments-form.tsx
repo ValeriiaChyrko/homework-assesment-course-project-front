@@ -20,7 +20,6 @@ import {useState} from "react";
 import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
 import {cn} from "@/lib/utils";
-import {Chapter, Assignment} from "@prisma/client";
 import { AssignmentList } from "./assignment-list";
 
 interface AssignmentsFormProps {
@@ -88,7 +87,7 @@ export const AssignmentForm = ({
     }
 
     return(
-        <div className="relative mt-6 border bg-slate-100 rounded-md p-4">
+        <div className="relative mt-6 border border-gray-900/25 bg-slate-100 rounded-md p-4">
             {isUpdating && (
                 <div className="absolute h-full w-full bg-slate-500/20 top-0 right-0 rounded-m flex items-center justify-center">
                     <Loader2 className="animate-spin h-6 w-6 text-sky-700"/>

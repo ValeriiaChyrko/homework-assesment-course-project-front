@@ -1,13 +1,55 @@
 ﻿import { NextResponse } from "next/server";
-import Mux from "@mux/mux-node";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import Mux from "@mux/mux-node";
+
 const mux = new Mux({
     tokenId: process.env.MUX_TOKEN_ID!,
     tokenSecret: process.env.MUX_TOKEN_SECRET!
 });
 
 const { video } = mux;
+
+export async function GET(
+    req: Request,
+    { params }: { params: { courseId: string; chapterId: string } }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+        const userId = session?.user?.id;
+
+        const { courseId, chapterId } = await params;
+
+        if (!token || !userId) {
+            console.error("GET_CHAPTER: No token or userId found");
+            return {
+                chapter: null
+            };
+        }
+
+        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        if (!apiResponse.ok) {
+            console.error("GET_CHAPTER: Failed to fetch chapter", apiResponse.status);
+            return NextResponse.json({
+                chapter: null
+            });
+        }
+
+        const chapter = await apiResponse.json();
+        return NextResponse.json(chapter);
+    } catch (e) {
+        console.error("[CHAPTER]", e);
+        return new NextResponse("Internal Server Error", { status: 500 });
+    }
+}
 
 export async function DELETE(
     req: Request,
@@ -21,76 +63,27 @@ export async function DELETE(
         const { courseId, chapterId } = await params;
 
         if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
+            console.error("GET_CHAPTER: No token or userId found");
             return {
                 chapter: null
             };
         }
 
-        const courseOwner = await db.course.findUnique({
-            where: {
-                id: courseId,
-                userId: userId
-            }
+        const queryParams = new URLSearchParams({userId});
+        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}?${queryParams.toString()}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${token}`,
+            },
         });
 
-        if (!courseOwner) {
-            return new NextResponse("Unauthorized", { status: 401 });
+        if (!apiResponse.ok) {
+            return new NextResponse("Internal Server Error", { status: apiResponse.status });
         }
 
-        const chapter = await db.chapter.findUnique({
-            where: {
-                id: chapterId,
-                courseId: courseId,
-            }
-        });
-
-        if (!chapter) {
-            return new NextResponse("Not Found", { status: 404 });
-        }
-
-        if (chapter.videoUrl) {
-            const existingMuxData = await db.muxData.findFirst({
-                where: {
-                    chapterId: chapterId
-                }
-            });
-
-            if (existingMuxData) {
-                await video.assets.delete(existingMuxData.assetId);
-                await db.muxData.delete({
-                    where: {
-                        id: existingMuxData.id,
-                    }
-                });
-            }
-        }
-
-        const deletedChapter = await db.chapter.delete({
-            where: {
-                id: chapterId,
-            }
-        });
-
-        const publishedChaptersInCourse = await db.chapter.findMany({
-            where: {
-                courseId: courseId,
-                isPublished: true
-            }
-        });
-
-        if (!publishedChaptersInCourse.length) {
-            await db.course.update({
-                where: {
-                    id: courseId,
-                },
-                data: {
-                    isPublished: false,
-                }
-            });
-        }
-
-        return NextResponse.json(deletedChapter);
+        const deletedCourse = await apiResponse.json();
+        return NextResponse.json(deletedCourse);
     } catch (e) {
         console.error("[COURSES_CHAPTER_ID_DELETE]", e);
         return new NextResponse("Internal Server Error", { status: 500 });
@@ -102,66 +95,62 @@ export async function PATCH(
     { params }: { params: { courseId: string; chapterId: string } }
 ) {
     try {
-        const { userId } = await auth();
-        const { courseId, chapterId } = params;
-        const { isPublished, ...values } = await req.json();
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+        const userId = session?.user?.id;
 
-        if (!userId) {
-            return new NextResponse("Unauthorized", { status: 401 });
+        const { courseId, chapterId } = await params;
+        const {...values } = await req.json();
+
+        if (!token || !userId) {
+            console.error("GET_COURSE: No token or userId found");
+            return {
+                chapter: null
+            };
         }
 
-        const courseOwner = await db.course.findUnique({
-            where: {
-                id: courseId,
-                userId: userId
-            }
-        });
-
-        if (!courseOwner) {
-            return new NextResponse("Unauthorized", { status: 401 });
-        }
-
-        const chapter = await db.chapter.update({
-            where: {
-                id: chapterId,
-                courseId: courseId,
+        const apiChapterResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${token}`,
             },
-            data: {
-                ...values
-            }
+            body: JSON.stringify({
+                userId: userId,
+                ...values,
+            })
         });
+
+        if (!apiChapterResponse.ok) {
+            return new NextResponse("Internal Server Error", { status: apiChapterResponse.status });
+        }
 
         if (values.videoUrl) {
-            const existingMuxData = await db.muxData.findFirst({
-                where: {
-                    chapterId: chapterId
-                }
-            });
-
-            if (existingMuxData) {
-                await video.assets.delete(existingMuxData.assetId);
-                await db.muxData.delete({
-                    where: {
-                        id: existingMuxData.id,
-                    }
-                });
-            }
-
             const asset = await video.assets.create({
                 input: values.videoUrl,
                 playback_policy: ["public"],
                 test: false
             });
 
-            await db.muxData.create({
-                data: {
+            const apiVideoResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assets`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({
                     chapterId: chapterId,
                     assetId: asset.id,
-                    playbackId: asset.playback_ids?.[0]?.id,
-                }
+                    playbackId: asset.playback_ids?.[0]?.id
+                })
             });
+
+            if (!apiVideoResponse.ok) {
+                return new NextResponse("Internal Server Error", { status: apiVideoResponse.status });
+            }
         }
 
+        const chapter = await apiChapterResponse.json();
         return NextResponse.json(chapter);
     } catch (e) {
         console.error("[COURSES_CHAPTER_ID]", e);

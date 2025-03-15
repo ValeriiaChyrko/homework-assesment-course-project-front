@@ -1,4 +1,5 @@
-﻿import {redirect} from "next/navigation";
+﻿"use client";
+
 import Link from "next/link";
 import {
     ArrowLeft,
@@ -42,7 +43,7 @@ const ChapterIdPage = ({ params }: { params: Promise<{ courseId: string, chapter
                 const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}`);
                 setChapter(response.data);
             } catch (error) {
-                console.error("Error fetching course:", error);
+                console.error("Error fetching chapter:", error);
             }
         };
 

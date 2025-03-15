@@ -1,5 +1,12 @@
 @import "tailwindcss";
 @import "@uploadthing/react/styles.css";
+@tailwind utilities;
+
+html,
+body,
+:root {
+  height: 100%;
+}
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -72,7 +79,7 @@
 }
 
 .bg-primary {
-  background-color: #2e3135;
+  background-color: #181818;
 }
 
 .text-primary-foreground {
@@ -84,11 +91,11 @@
 }
 
 .hover\:bg-accent:hover {
-  background-color: #495057;
+  background-color: #929090;
 }
 
 .hover\:text-accent-foreground:hover {
-  color: #f8f9fa;
+  color: #faf8ff;
 }
 
 .scroll-container::-webkit-scrollbar {

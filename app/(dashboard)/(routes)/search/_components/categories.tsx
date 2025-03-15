@@ -20,7 +20,7 @@ interface CategorisProps {
 
 const iconMap: Record<Category["name"], IconType> = {
     "Розробка програмного забезпечення": FcCommandLine,
-    "Розробка веб-додатків": FcGlobe,
+    "Розробка вебдодатків": FcGlobe,
     "Мобільна розробка": FcSmartphoneTablet,
     "Розробка ігор": FcSelfie,
     "Наука про дані": FcDataConfiguration,

@@ -1,7 +1,6 @@
 ﻿"use client"
 
 import {ColumnDef} from "@tanstack/react-table"
-import {Assignment, AttemptProgress} from "@prisma/client";
 import {ArrowUpDown} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {format} from "date-fns";

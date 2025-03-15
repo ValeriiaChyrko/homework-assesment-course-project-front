@@ -1,3 +1,5 @@
+﻿/** @type {import('tailwindcss').Config} */
+
 import tailwindcssAnimate from "tailwindcss-animate";
 import { withUt } from "uploadthing/tw";
 

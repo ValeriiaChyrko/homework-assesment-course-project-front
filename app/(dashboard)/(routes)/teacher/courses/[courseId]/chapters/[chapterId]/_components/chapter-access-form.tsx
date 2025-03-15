@@ -18,7 +18,6 @@ import {PencilIcon} from "lucide-react";
 import {useState} from "react";
 import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
-import {Chapter} from "@prisma/client";
 import {cn} from "@/lib/utils";
 import {Checkbox} from "@/components/ui/checkbox";
 
@@ -64,7 +63,7 @@ export const ChapterAccessForm = ({
     }
 
     return(
-        <div className="mt-6 border bg-slate-100 rounded-md p-4">
+        <div className="mt-6 border border-gray-900/25 bg-slate-100 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
                 Параметри доступу до розділу
                 <Button onClick={toggleEditing} variant="ghost">
@@ -105,7 +104,6 @@ export const ChapterAccessForm = ({
                                         <Checkbox
                                             checked={field.value}
                                             onCheckedChange={field.onChange}
-                                            className="mt-2"
                                         />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">

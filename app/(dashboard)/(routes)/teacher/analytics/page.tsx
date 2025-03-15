@@ -1,31 +1,49 @@
-﻿import {auth} from "@clerk/nextjs/server";
-import {redirect} from "next/navigation";
-import {getAnalytics} from "@/actions/get-analytics";
+﻿"use client"
+
 import {DataCard} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/data-card";
 import { Chart } from "./_components/chart";
-import { getCourseAnalytics } from "@/actions/get-course-analytics";
-import {AttemptResultsDialog} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/attempt-results-dialog";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {GraduationCap, School} from "lucide-react";
 import {CourseTable} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/course-data-table";
+import {useEffect, useState } from "react";
+import axios from "axios";
 
 
-const AnalyticsPage = async () => {
-    const {userId} = await auth();
+const AnalyticsPage = () => {
+    const [courses, setCourses] = useState([]);
+    const [totalAttempts, setTotalAttempts] = useState(0);
 
-    if (!userId) {
-        return redirect('/');
-    }
+    useEffect(() => {
+        const getCourseAnalytics = async () => {
+            try {
+                const response = await axios.get('/api/courses/evaluation');
+                setCourses(response.data.courses || []);
+                setTotalAttempts(response.data.totalAttempts);
+            } catch (error) {
+                console.error("Error fetching courses:", error);
+                setCourses([]);
+            }
+        };
 
-    const {
-        data,
-        totalStudents
-    } = await getAnalytics(userId);
+        getCourseAnalytics().then();
+    }, []);
 
-    const {
-        courses,
-        totalAttempts
-    } = await getCourseAnalytics(userId);
+    const [enrollments, setEnrollments] = useState([]);
+    const [totalStudents, setTotalStudents] = useState(0);
+
+    useEffect(() => {
+        const getEnrolledCourseAnalytics = async () => {
+            try {
+                const response = await axios.get('/api/courses/enrollments');
+                setEnrollments(response.data.enrolledCourses || []);
+                setTotalStudents(response.data.totalStudents);
+            } catch (error) {
+                console.error("Error fetching enrollments:", error);
+                setCourses([]);
+            }
+        };
+
+        getEnrolledCourseAnalytics().then();
+    }, []);
 
     return (
         <div className="p-6 space-y-8">
@@ -37,7 +55,7 @@ const AnalyticsPage = async () => {
                 />
             </div>
             <Chart
-                data={data}
+                data={enrollments}
             />
             <DataCard
                 value={totalAttempts}

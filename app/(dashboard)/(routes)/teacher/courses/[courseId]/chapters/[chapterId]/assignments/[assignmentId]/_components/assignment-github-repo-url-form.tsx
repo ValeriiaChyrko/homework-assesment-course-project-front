@@ -19,7 +19,6 @@ import {PencilIcon} from "lucide-react";
 import {useState} from "react";
 import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
-import {Assignment} from "@prisma/client";
 import {cn} from "@/lib/utils";
 
 interface AssignmentGitHubRepoTitleFormProps {

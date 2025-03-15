@@ -8,8 +8,6 @@ export default async function SignoutPage() {
     if (session) {
         return (
             <div>
-                <div>Signout</div>
-                <div>Are you sure you want to sign out?</div>
                 <div>
                     <Logout />
                 </div>

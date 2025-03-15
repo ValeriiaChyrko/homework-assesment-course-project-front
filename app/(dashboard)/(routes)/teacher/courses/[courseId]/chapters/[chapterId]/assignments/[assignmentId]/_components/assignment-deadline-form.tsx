@@ -15,7 +15,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {Assignment} from "@prisma/client";
 
 interface AssignmentDeadlineFormProps {
     initialData: Assignment;
@@ -112,7 +111,6 @@ export const AssignmentDeadlineForm = ({
                                     selected={date}
                                     onSelect={handleDateChange}
                                     locale={uk}
-                                    initialFocus
                                 />
                             </PopoverContent>
                         </Popover>

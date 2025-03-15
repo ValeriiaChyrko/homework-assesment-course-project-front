@@ -1,89 +1,83 @@
-﻿import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
-import { db } from "@/lib/db";
-import {isTeacher} from "@/lib/teacher";
+export async function GET(
+    req: Request,
+    { params }: { params: { courseId: string; chapterId: string; assignmentId: string } }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+        const userId = session?.user?.id;
 
+        const { courseId, chapterId, assignmentId } = await params;
+
+        if (!token || !userId) {
+            console.error("GET_ASSIGNMENT: No token or userId found");
+            return {
+                assignment: null
+            };
+        }
+
+        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        if (!apiResponse.ok) {
+            console.error("GET_ASSIGNMENT: Failed to fetch courses", apiResponse.status);
+            return NextResponse.json({
+                assignment: null
+            });
+        }
+
+        const assignment = await apiResponse.json();
+        return NextResponse.json(assignment);
+    } catch (e) {
+        console.error("[ASSIGNMENT]", e);
+        return new NextResponse("Internal Server Error", { status: 500 });
+    }
+}
 
 export async function DELETE(
     req: Request,
     { params }: { params: { courseId: string; chapterId: string; assignmentId: string } }
 ) {
     try {
-        const { userId } = await auth();
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+        const userId = session?.user?.id;
+
         const { courseId, chapterId, assignmentId } = await params;
 
-        if (!userId || !isTeacher(userId)) {
-            return new NextResponse("Unauthorized", { status: 401 });
+        if (!token || !userId) {
+            console.error("GET_CHAPTER: No token or userId found");
+            return {
+                chapter: null
+            };
         }
 
-        const chapter = await db.chapter.findUnique({
-            where: {
-                id: chapterId,
-                courseId: courseId
-            }
+        const queryParams = new URLSearchParams({userId});
+        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}?${queryParams.toString()}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${token}`,
+            },
         });
 
-        if (!chapter) {
-            return new NextResponse("Not Found", { status: 404 });
+        if (!apiResponse.ok) {
+            return new NextResponse("Internal Server Error", { status: apiResponse.status });
         }
 
-        const assignment = await db.assignment.findUnique({
-            where: {
-                id: assignmentId,
-                chapterId: chapterId,
-            }
-        });
-
-        if (!assignment) {
-            return new NextResponse("Not Found", { status: 404 });
-        }
-
-        const deletedAssignment = await db.assignment.delete({
-            where: {
-                id: assignmentId,
-            }
-        });
-
-        const publishedAssignmentsInChapter = await db.assignment.findMany({
-            where: {
-                chapterId: chapterId,
-                isPublished: true
-            }
-        });
-
-        if (!publishedAssignmentsInChapter.length) {
-            await db.chapter.update({
-                where: {
-                    id: chapterId,
-                },
-                data: {
-                    isPublished: false,
-                }
-            });
-        }
-
-        const publishedChaptersInCourse = await db.chapter.findMany({
-            where: {
-                courseId: courseId,
-                isPublished: true
-            }
-        });
-
-        if (!publishedChaptersInCourse.length) {
-            await db.course.update({
-                where: {
-                    id: courseId,
-                },
-                data: {
-                    isPublished: false,
-                }
-            });
-        }
-
-        return NextResponse.json(deletedAssignment);
+        const deletedCourse = await apiResponse.json();
+        return NextResponse.json(deletedCourse);
     } catch (e) {
-        console.error("[CHAPTERS_ASSIGNMENT_ID_DELETE]", e);
+        console.error("[CHAPTER_ASSIGNMENT_ID_DELETE]", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
@@ -93,23 +87,16 @@ export async function PATCH(
     { params }: { params: { courseId: string; chapterId: string; assignmentId: string } }
 ) {
     try {
-        const { userId } = await auth();
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+        const userId = session?.user?.id;
+
         const { courseId, chapterId, assignmentId } = await params;
-        const { repositoryUrl, isPublished, ...values } = await req.json();
+        const { repositoryUrl, ...values } = await req.json();
 
-        if (!userId) {
+        if (!token || !userId) {
+            console.error("PATCH: No token or userId found");
             return new NextResponse("Unauthorized", { status: 401 });
-        }
-
-        const chapter = await db.chapter.findUnique({
-            where: {
-                id: chapterId,
-                courseId: courseId
-            }
-        });
-
-        if (!chapter) {
-            return new NextResponse("Not Found", { status: 404 });
         }
 
         const extractRepoData = (url: string) => {
@@ -123,35 +110,38 @@ export async function PATCH(
                     };
                 }
             }
-
             return { repositoryOwner: '', repositoryName: '' };
         };
 
         const { repositoryOwner, repositoryName } = extractRepoData(repositoryUrl);
 
-        const updateData: any = {
-            ...values
+        const updateData = {
+            ...values,
+            ...(repositoryUrl && { repositoryUrl }),
+            ...(repositoryOwner && { repositoryOwner }),
+            ...(repositoryName && { repositoryName }),
         };
 
-        if (repositoryUrl) {
-            updateData.repositoryUrl = repositoryUrl;
-        }
-        if (repositoryOwner) {
-            updateData.repositoryOwner = repositoryOwner;
-        }
-        if (repositoryName) {
-            updateData.repositoryName = repositoryName;
-        }
-
-        const assignment = await db.assignment.update({
-            where: {
-                id: assignmentId,
-                chapterId: chapterId,
+        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${token}`,
             },
-            data: updateData
+            body: JSON.stringify({
+                userId,
+                ...updateData
+            })
         });
 
-        return NextResponse.json(assignment);
+        if (!apiResponse.ok) {
+            const errorMessage = await apiResponse.text();
+            console.error("API Error:", errorMessage);
+            return new NextResponse("Internal Server Error", { status: apiResponse.status });
+        }
+
+        const chapter = await apiResponse.json();
+        return NextResponse.json(chapter);
     } catch (e) {
         console.error("[CHAPTER_ASSIGNMENT_ID]", e);
         return new NextResponse("Internal Server Error", { status: 500 });

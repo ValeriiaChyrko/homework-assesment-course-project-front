@@ -1,5 +1,5 @@
 ﻿import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {GraduationCap, LucideIcon} from "lucide-react";
+import {LucideIcon} from "lucide-react";
 
 interface DataCardProps {
     value: number;

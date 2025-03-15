@@ -8,7 +8,6 @@
 } from "@/components/ui/dialog";
 import { AssignmentAttemptResultsTable } from "@/app/(dashboard)/(routes)/teacher/analytics/_components/attempts-data-table";
 import { courseColumns } from "@/app/(dashboard)/(routes)/teacher/analytics/_components/course-columns";
-import { Assignment, AttemptProgress } from "@prisma/client";
 import {Eye, Menu} from "lucide-react";
 
 interface AttemptResultsDialogProps {

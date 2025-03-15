@@ -19,7 +19,6 @@ export async function GET(
                 course: null
             };
         }
-
         const queryParams = new URLSearchParams();
         queryParams.append("OwnerId", userId);
         queryParams.append("Include", "chapters");
@@ -72,11 +71,7 @@ export async function DELETE(
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                userId: userId,
-                courseId: courseId,
-            })
+            }
         });
 
         if (!apiResponse.ok) {

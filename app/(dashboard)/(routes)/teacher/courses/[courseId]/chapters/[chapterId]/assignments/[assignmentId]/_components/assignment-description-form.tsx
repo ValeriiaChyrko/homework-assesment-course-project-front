@@ -19,7 +19,6 @@ import {useState} from "react";
 import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
 import {Editor} from "@/components/editor";
-import {Assignment} from "@prisma/client";
 import {cn} from "@/lib/utils";
 import {Preview} from "@/components/preview";
 

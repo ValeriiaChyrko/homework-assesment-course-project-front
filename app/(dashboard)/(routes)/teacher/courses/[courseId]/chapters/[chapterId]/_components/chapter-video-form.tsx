@@ -8,7 +8,6 @@ import {PencilIcon, PlusCircle, Video} from "lucide-react";
 import {useState} from "react";
 import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
-import {Chapter, MuxData} from "@prisma/client";
 import MaxPlayer from "@mux/mux-player-react";
 import {FileUpload} from "@/components/file-upload";
 
@@ -46,7 +45,7 @@ const ChapterVideoForm = ({
     }
 
     return(
-        <div className="mt-6 border bg-slate-100 rounded-md p-4">
+        <div className="mt-6 border border-gray-900/25 bg-slate-100 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
                 Відеофайл курсу
                 <Button onClick={toggleEditing} variant="ghost">

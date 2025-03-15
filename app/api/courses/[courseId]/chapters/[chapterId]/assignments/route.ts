@@ -1,62 +1,44 @@
-﻿import {auth} from "@clerk/nextjs/server";
-import {NextResponse} from "next/server";
-import {db} from "@/lib/db";
-import {isTeacher} from "@/lib/teacher";
+﻿import {NextResponse} from "next/server";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+
 
 export async function POST(
     req: Request,
     { params }: { params: { courseId: string, chapterId: string } },
 ) {
     try {
-        const { userId } = await auth();
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+        const userId = session?.user?.id;
+
         const { courseId, chapterId } = await params;
         const { title } = await req.json();
 
-        if (!userId || !isTeacher(userId)) {
-            return new NextResponse("Unauthorized", { status: 401 });
+        if (!token || !userId) {
+            console.error("GET_COURSE: No token or userId found");
+            return {
+                chapter: null
+            };
         }
 
-        const courseOwner = await db.course.findUnique({
-            where: {
-                id: courseId,
-                userId: userId
-            }
-        });
-
-        if (!courseOwner) {
-            return new NextResponse("Unauthorized", { status: 401 });
-        }
-
-        const chapter = await db.chapter.findUnique({
-            where: {
-                id: chapterId,
-                courseId: courseId
-            }
-        });
-
-        if (!chapter) {
-            return new NextResponse("Not Found", { status: 404 });
-        }
-
-        const lastAssignment = await db.assignment.findFirst({
-            where: {
-                chapterId: chapterId,
+        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${token}`,
             },
-            orderBy: {
-                position: "desc",
-            }
+            body: JSON.stringify({
+                title,
+                userId
+            })
         });
 
-        const newPosition = lastAssignment ? lastAssignment.position + 1 : 1;
+        if (!apiResponse.ok) {
+            return new NextResponse("Internal Server Error", { status: apiResponse.status });
+        }
 
-        const assignment = await db.assignment.create({
-            data: {
-                title,
-                chapterId: chapterId,
-                position: newPosition,
-            }
-        })
-
+        const assignment = await apiResponse.json();
         return NextResponse.json(assignment);
     } catch (e) {
         console.error("[ASSIGNMENTS]", e);

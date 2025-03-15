@@ -1,6 +1,5 @@
 ﻿"use client"
 
-import {Assignment} from "@prisma/client";
 import {useEffect, useState} from "react";
 
 import {

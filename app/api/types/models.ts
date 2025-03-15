@@ -11,6 +11,7 @@ interface Course {
     categoryId?: UUID;
     createdAt: Date;
     updatedAt: Date;
+    category: Category;
     chapters: Chapter[];
     attachments: Attachment[];
     enrollments: Enrollment[];
@@ -42,6 +43,7 @@ interface Chapter {
     courseId: UUID;
     muxData?: MuxData;
     assignments: Assignment[];
+    userProgress: UserProgress[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -67,6 +69,9 @@ interface Assignment {
     attemptTestsMinScore: number;
     attemptQualityMaxScore: number;
     attemptQualityMinScore: number;
+
+    attemptProgress: AttemptProgress[];
+
     chapterId: UUID;
     createdAt: Date;
     updatedAt: Date;

@@ -1,6 +1,5 @@
-﻿import {auth} from "@clerk/nextjs/server";
-import {redirect} from "next/navigation";
-import {db} from "@/lib/db";
+﻿"use client";
+
 import Link from "next/link";
 import {
     ArrowLeft, CalendarClock,
@@ -19,38 +18,47 @@ import AssignmentTestCriteriaForm from "./_components/assignment-test-criteria-f
 import {
     AssignmentActions
 } from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/chapters/[chapterId]/assignments/[assignmentId]/_components/assignment-actions";
+import {useEffect, useState} from "react";
+import axios from "axios";
 
-const AssignmentIdPage = async ({
+const AssignmentIdPage = ({
 params
 }: {
     params: { courseId: string; chapterId: string; assignmentId: string }
 }) => {
-    const {userId} = await auth();
-    const {courseId, chapterId, assignmentId} = await params;
+    const [assignment, setAssignment] = useState<Assignment | null>(null);
+    const [courseId, setCourseId] = useState<string>('');
+    const [chapterId, setChapterId] = useState<string>('');
+    const [assignmentId, setAssignmentId] = useState<string>('');
 
-    if(!userId) {
-        return redirect(`/`);
-    }
+    useEffect(() => {
+        const getAssignment = async () => {
+            const {courseId, chapterId, assignmentId} = await params;
+            setChapterId(chapterId);
+            setCourseId(courseId);
+            setAssignmentId(assignmentId);
 
-    const assignment = await db.assignment.findUnique({
-        where: {
-            id: assignmentId,
-            chapterId: chapterId
-        }
-    });
+            if (!assignmentId) return;
 
-    if (!assignment) {
-        return redirect("/");
-    }
+            try {
+                const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`);
+                setAssignment(response.data);
+            } catch (error) {
+                console.error("Error fetching chapter:", error);
+            }
+        };
+
+        getAssignment();
+    }, [params]);
+
+    if (!assignment) return null;
 
     const requiredFields = [
         assignment.title,
         assignment.description,
         assignment.repositoryName,
         assignment.repositoryOwner,
-        assignment.deadline,
-        assignment.maxScore,
-        assignment.maxAttemptsAmount
+        assignment.deadline
     ];
 
     const totalFields = requiredFields.length;

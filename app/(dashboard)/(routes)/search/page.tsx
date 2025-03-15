@@ -14,7 +14,7 @@ interface SearchPageProps {
 }
 
 const SearchPage = ({ searchParams }: SearchPageProps) => {
-    const [categories, setCategories] = useState([]);
+    const [categories, setCategories] = useState<Category[] | []>([]);
     const [courses, setCourses] = useState([]);
 
     useEffect(() => {
@@ -38,7 +38,12 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
         const getCourses = async () => {
             try {
                 const response = await axios.get('/api/courses', {
-                    params: searchParams,
+                    params: {
+                        title: searchParams.title,
+                        categoryId: searchParams.categoryId,
+                        Include: ['category', 'progress'],
+                        IsPublished: 'true'
+                    },
                     signal
                 });
                 setCourses(response.data.courses || []);

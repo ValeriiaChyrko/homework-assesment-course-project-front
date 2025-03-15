@@ -1,4 +1,5 @@
-﻿"use client"
+﻿"use client";
+
 import federatedLogout from "@/utils/federatedLogout";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";

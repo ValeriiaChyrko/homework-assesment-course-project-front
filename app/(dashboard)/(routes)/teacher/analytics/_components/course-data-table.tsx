@@ -24,7 +24,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { AttemptResultsDialog } from "@/app/(dashboard)/(routes)/teacher/analytics/_components/attempt-results-dialog";
-import { Assignment, AttemptProgress, Chapter, Course } from "@prisma/client";
 
 interface CourseTableProps {
     courses: (Course & {
