@@ -1,6 +1,12 @@
 ﻿import {Sidebar} from "./_components/sidebar";
 import {Navbar} from "./_components/navbar";
 import React from "react";
+import {Metadata} from "next";
+
+export const metadata: Metadata = {
+    title: 'Курси користувача',
+    description: 'Це панель керування, де ви можете переглядати курси та їх прогрес.'
+};
 
 const DashboardLayout = ({
     children

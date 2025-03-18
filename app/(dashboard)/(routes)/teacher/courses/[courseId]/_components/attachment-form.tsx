@@ -1,101 +1,99 @@
-﻿"use client"
+﻿"use client";
 
 import axios from "axios";
-
-import {Button} from "@/components/ui/button";
-import {File, Loader2, PlusCircle, X} from "lucide-react";
-import {useState} from "react";
+import { Button } from "@/components/ui/button";
+import { File, Loader2, PlusCircle, X } from "lucide-react";
+import { useState, useCallback } from "react";
 import toast from "react-hot-toast";
-import {useRouter} from "next/navigation";
-import {FileUpload} from "@/components/file-upload";
-import {cn} from "@/lib/utils";
+import { FileUpload } from "@/components/file-upload";
+import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+
+interface Attachment {
+    id: string;
+    name: string;
+}
 
 interface AttachmentFormProps {
-    initialData: Course & { attachments: Attachment[] };
+    initialData: {
+        attachments: Attachment[];
+    };
     courseId: string;
 }
 
-const AttachmentForm = ({
-    initialData,
-    courseId
-}: AttachmentFormProps) => {
-
+const AttachmentForm = ({ initialData, courseId }: AttachmentFormProps) => {
     const [isEditing, setEditing] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const queryClient = useQueryClient();
 
-    const toggleEditing = () => setEditing((current) => !current);
-    const router = useRouter();
+    const toggleEditing = () => setEditing((prev) => !prev);
 
-    const onSubmit = async (values: { url: string; name: string }) => {
-        try{
+    const handleSubmit = useCallback(async (values: { url: string; name: string }) => {
+        try {
             await axios.post(`/api/courses/${courseId}/attachments`, values);
-            toast.success("Дані оновлено успішно.");
+            await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
             toggleEditing();
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            toast.success("Вкладення створено успішно.");
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         }
-    }
+    }, [courseId, queryClient]);
 
-    const onDelete = async (attachmentId: string) => {
-        try{
+    const handleDelete = useCallback(async (attachmentId: string) => {
+        try {
             setDeletingId(attachmentId);
             await axios.delete(`/api/courses/${courseId}/attachments/${attachmentId}`);
-            toast.success("Файл видалено успішно.");
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
+            toast.success("Вкладення видалено успішно.");
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         } finally {
             setDeletingId(null);
         }
-    }
+    }, [courseId, queryClient]);
 
-    return(
-        <div className="mt-6 border border-gray-900/25 bg-slate-100 rounded-md p-4">
-            <div className="font-medium flex items-center justify-between">
+    return (
+        <div className="mt-6 bg-slate-50 rounded-lg shadow-lg border border-gray-200 p-6">
+            <div className="font-semibold text-lg flex items-center justify-between mb-4">
                 Матеріали курсу
-                <Button onClick={toggleEditing} variant="ghost">
-                    {isEditing && (
-                        <>Скасувати</>
-                    )}
-                    {!isEditing && (
+                <Button
+                    onClick={toggleEditing}
+                    variant="ghost"
+                    className="flex items-center transition-colors"
+                    aria-label={isEditing ? "Скасувати редагування" : "Прикріпити файл"}
+                >
+                    {isEditing ? "Скасувати" : (
                         <>
-                            <PlusCircle className="h-4 w-4 mr-1"/>
+                            <PlusCircle className="h-4 w-4 mr-1" />
                             Прикріпити файл
                         </>
                     )}
                 </Button>
             </div>
-            {!isEditing && (
-                <div className={cn(
-                    "text-sm mt-4",
-                    !initialData.attachments.length && "text-slate-500 italic"
-                )}>
-                    {!initialData.attachments.length && "Ще не додано жодних файлів"}
-                    {initialData.attachments.length > 0 && (
+            {!isEditing ? (
+                <div className={cn("text-md text-gray-700 mt-2", !initialData.attachments.length && "italic")}>
+                    {!initialData.attachments.length ? "Ще не додано жодних файлів" : (
                         <div className="space-y-2 mt-4">
                             {initialData.attachments.map((attachment) => (
                                 <div
                                     key={attachment.id}
-                                    className="flex items-center p-3 w-full bg-sky-100 border-sky-200 border text-sky-700 rounded-md"
+                                    className="flex items-center p-3 w-full bg-sky-100 border-sky-200 border text-sky-900 rounded-md"
                                 >
-                                    <File className="h-4 w-4 mr-2 flx-shrink-0"/>
-                                    <p className="text-xs line-clamp-1">
-                                        {attachment.name}
-                                    </p>
-                                    {deletingId === attachment.id && (
+                                    <File className="h-5 w-5 mr-2 flex-shrink-0" />
+                                    <p className="text-sm line-clamp-1">{attachment.name}</p>
+                                    {deletingId === attachment.id ? (
                                         <div className="flex-shrink-0 ml-4">
-                                            <Loader2 className="h-4 w-4 animate-spin"/>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
                                         </div>
-                                    )}
-                                    {deletingId !== attachment.id && (
+                                    ) : (
                                         <button
-                                            onClick={() => onDelete(attachment.id)}
+                                            onClick={() => handleDelete(attachment.id)}
                                             className="ml-auto hover:opacity-75 transition"
+                                            aria-label="Видалити вкладення"
                                         >
-                                            <X className="h-4 w-4"/>
+                                            <X className="h-4 w-4" />
                                         </button>
                                     )}
                                 </div>
@@ -103,24 +101,23 @@ const AttachmentForm = ({
                         </div>
                     )}
                 </div>
-            )}
-            {isEditing && (
+            ) : (
                 <div>
                     <FileUpload
                         endpoint="courseAttachment"
                         onChangeAction={(url?: string, name?: string) => {
                             if (url && name) {
-                                onSubmit({ url: url, name: name });
+                                handleSubmit({ url, name });
                             }
                         }}
                     />
-                    <div className="text-xs text-muted-foreground mt-4">
-                        Додайте матеріали, які можуть знадобитися вашим студентам для проходження курсу.
+                    <div className="text-sm text-muted-foreground mt-4">
+                        Додайте матеріали, які можуть знадобитися вашим студентам для проходження курсу
                     </div>
                 </div>
             )}
         </div>
-    )
-}
+    );
+};
 
 export default AttachmentForm;

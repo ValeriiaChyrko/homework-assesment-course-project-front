@@ -10,51 +10,48 @@ import AttachmentForm from "@/app/(dashboard)/(routes)/teacher/courses/[courseId
 import ChaptersForm from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/_components/chapters-form";
 import { Banner } from "@/components/banner";
 import { Actions } from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/_components/actions";
-import {useEffect, useState} from "react";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
+import {
+    EditCourseSkeleton
+} from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/_components/edit-course-skeleton";
+
+const fetchCourse = async (courseId: string): Promise<Course> => {
+    const response = await axios.get(`/api/courses/${courseId}`);
+    return response.data;
+};
+
+const fetchCategories = async (): Promise<Category[]> => {
+    const response = await axios.get("/api/categories");
+    return response.data.categories || [];
+};
 
 const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => {
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [course, setCourse] = useState<Course | null>(null);
+    const courseId = React.use(params).courseId;
 
-    useEffect(() => {
-        const getCategories = async () => {
-            try {
-                const response = await axios.get('/api/categories');
-                setCategories(response.data.categories || []);
-            } catch (error) {
-                console.error("Error fetching categories:", error);
-                setCategories([]);
-            }
-        };
+    const { data: course, error: courseError, isLoading: isLoadingCourse } = useQuery({
+        queryKey: ["course", courseId],
+        queryFn: () => fetchCourse(courseId),
+        enabled: !!courseId,
+    });
 
-        getCategories();
-    }, []);
+    const { data: categories = [], error: categoriesError, isLoading: isLoadingCategories } = useQuery({
+        queryKey: ["categories"],
+        queryFn: fetchCategories,
+    });
 
-    useEffect(() => {
-        const getCourse = async () => {
-            const { courseId } = await params;
-            if (!courseId) return;
-
-            try {
-                const response = await axios.get(`/api/courses/${courseId}`);
-                setCourse(response.data);
-            } catch (error) {
-                console.error("Error fetching course:", error);
-            }
-        };
-
-        getCourse();
-    }, [params]);
-
+    if (isLoadingCourse || isLoadingCategories) return <EditCourseSkeleton/>;
+    if (courseError) return <p>Error loading course: {courseError.message}</p>;
+    if (categoriesError) return <p>Error loading categories: {categoriesError.message}</p>;
     if (!course) return null;
 
     const requiredFields = [
-        course.title,
-        course.description,
-        course.imageUrl,
-        course.categoryId,
-        course.chapters.some((chapter: Chapter) => chapter.isPublished),
+        !!course.title,
+        !!course.description,
+        !!course.imageUrl,
+        !!course.categoryId,
+        course.chapters?.length > 0 && course.chapters.some((chapter: Chapter) => chapter.isPublished),
     ];
 
     const completedFields = requiredFields.filter(Boolean).length;
@@ -70,10 +67,10 @@ const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => 
                 />
             )}
             <div className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:!flex-row items-start md:items-center justify-between gap-y-4 space-x-2">
                     <div className="flex flex-col gap-y-2">
-                        <h1 className="text-2xl font-medium">Налаштування курсу</h1>
-                        <span className="text-sm text-slate-700">
+                        <h1 className="text-3xl font-medium">Налаштування курсу</h1>
+                        <span className="text-md text-slate-700">
                             Завершіть заповнення всіх полів ({completedFields}/{totalFields})
                         </span>
                     </div>
@@ -95,7 +92,7 @@ const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => 
                         <CategoryForm
                             initialData={course}
                             courseId={course.id}
-                            options={categories.map((category: Category) => ({
+                            options={categories.map((category) => ({
                                 label: category.name,
                                 value: category.id,
                             }))}

@@ -44,6 +44,7 @@ interface Chapter {
     muxData?: MuxData;
     assignments: Assignment[];
     userProgress: UserProgress[];
+    attachments: Attachment[];
     createdAt: Date;
     updatedAt: Date;
 }

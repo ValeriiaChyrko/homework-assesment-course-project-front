@@ -2,12 +2,14 @@
 
 export const Logo = () => {
     return (
-        <Image
-            src="/full-logo.svg"
-            alt="Logo"
-            height={70}
-            width={130}
-            priority
-        />
+        <div className="relative w-[130px] h-[70px]">
+            <Image
+                src="/full-logo.svg"
+                alt="Logo"
+                fill
+                priority
+                style={{ objectFit: "contain" }}
+            />
+        </div>
     )
 }

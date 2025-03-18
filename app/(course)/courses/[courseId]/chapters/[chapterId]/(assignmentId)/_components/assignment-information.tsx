@@ -2,7 +2,7 @@
     AssignmentInfoBlock
 } from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/(assignmentId)/_components/assignment-info-block";
 import {CalendarCheck, GithubIcon, StarIcon} from "lucide-react";
-import {Preview} from "@/components/preview";
+import {Preview} from "@/components/editor/preview";
 import {format} from "date-fns";
 
 interface AssignmentInformationProps {

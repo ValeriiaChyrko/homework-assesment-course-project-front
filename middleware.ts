@@ -22,6 +22,10 @@ export async function middleware(req: NextRequest) {
         return NextResponse.next();
     }
 
+    if (pathname.startsWith("/api/uploadthing")) {
+        return NextResponse.next();
+    }
+
     if (isPublicRoute(pathname)) {
         return NextResponse.next();
     }

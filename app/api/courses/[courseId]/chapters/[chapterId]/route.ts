@@ -125,31 +125,6 @@ export async function PATCH(
             return new NextResponse("Internal Server Error", { status: apiChapterResponse.status });
         }
 
-        if (values.videoUrl) {
-            const asset = await video.assets.create({
-                input: values.videoUrl,
-                playback_policy: ["public"],
-                test: false
-            });
-
-            const apiVideoResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assets`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    chapterId: chapterId,
-                    assetId: asset.id,
-                    playbackId: asset.playback_ids?.[0]?.id
-                })
-            });
-
-            if (!apiVideoResponse.ok) {
-                return new NextResponse("Internal Server Error", { status: apiVideoResponse.status });
-            }
-        }
-
         const chapter = await apiChapterResponse.json();
         return NextResponse.json(chapter);
     } catch (e) {

@@ -20,7 +20,7 @@ export const CourseEnrollButton = ({
         try {
             setIsLoading(true);
 
-            await axios.post(`/api/courses/${courseId}/enroll`, courseId);
+            await axios.patch(`/api/courses/${courseId}/enroll`, courseId);
             toast.success("Ви успішно зареєструвались на курс.");
             router.refresh();
         } catch (e) {

@@ -18,63 +18,67 @@ import {Button} from "@/components/ui/button";
 import {Loader2, PlusCircle} from "lucide-react";
 import {useState} from "react";
 import toast from "react-hot-toast";
-import {useRouter} from "next/navigation";
 import {cn} from "@/lib/utils";
 import {ChaptersList} from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/_components/chapters-list";
+import {useQueryClient} from "@tanstack/react-query";
+import {useRouter} from "next/navigation";
 
 interface ChaptersFormProps {
-    initialData: Course & { chapters: Chapter[] };
+    initialData: {
+        title: string;
+        chapters: Chapter[];
+    };
     courseId: string;
 }
 
 const formSchema = z.object({
-    title: z.string().min(1),
+    title: z.string().trim().min(1, {
+        message: "Необхідно вказати назву розділу.",
+    }),
 });
 
-export const ChaptersForm = ({
-    initialData,
-    courseId
-}: ChaptersFormProps) => {
+export const ChaptersForm  = ({ initialData, courseId }: ChaptersFormProps) => {
     const [isCreating, setIsCreating] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const toggleCreating = () => setIsCreating((current) => !current);
     const router = useRouter();
+
+    const toggleCreating = () => setIsCreating((current) => !current);
+    const queryClient = useQueryClient();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: '',
-        }
+            title: initialData.title || '',
+        },
     });
 
     const {isSubmitting, isValid} = form.formState;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        try{
+        try {
             await axios.post(`/api/courses/${courseId}/chapters`, values);
-            toast.success("Секцію створено успішно.");
+            await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
             toggleCreating();
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            toast.success("Секцію створено успішно.");
+            form.reset(values);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         }
-    }
+    };
 
     const onReorder = async (updatedData: { id: string; position: number }[]) => {
         try{
             setIsUpdating(true);
 
-            await axios.put(`/api/courses/${courseId}/chapters/reorder`, {
-                list: updatedData
-            });
+            await axios.put(`/api/courses/${courseId}/chapters/reorder`, {list: updatedData});
+            await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
 
             toast.success("Порядок розділів змінено успішно.");
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         } finally {
             setIsUpdating(false);
         }
@@ -85,18 +89,21 @@ export const ChaptersForm = ({
     }
 
     return(
-        <div className="relative mt-6 border border-gray-900/25 bg-slate-100 rounded-md p-4">
+        <div className="mt-6 bg-slate-50 rounded-lg shadow-lg border border-gray-200 p-6 relative">
             {isUpdating && (
                 <div className="absolute h-full w-full bg-slate-500/20 top-0 right-0 rounded-m flex items-center justify-center">
-                    <Loader2 className="animate-spin h-6 w-6 text-sky-700"/>
+                    <Loader2 className="animate-spin h-8 w-8 text-sky-700"/>
                 </div>
             )}
-            <div className="font-medium flex items-center justify-between">
+            <div className="font-semibold text-lg flex items-center justify-between mb-4">
                 Розділи курсу
-                <Button onClick={toggleCreating} variant="ghost">
-                    {isCreating ? (
-                        <>Скасувати</>
-                    ) : (
+                <Button
+                    onClick={toggleCreating}
+                    variant="ghost"
+                    className="flex items-center transition-colors"
+                    aria-label={isCreating ? "Скасувати створення нового розділу" : "Додати новий розділ курсу"}
+                >
+                    {isCreating ? "Скасувати" : (
                         <>
                             <PlusCircle className="h-4 w-4 mr-1"/>
                             Додати новий розділ
@@ -110,37 +117,41 @@ export const ChaptersForm = ({
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-4 mt-4"
                     >
-                        <FormField
-                            control={form.control}
-                            name="title"
-                            render={({field}) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            disabled={isSubmitting}
-                                            placeholder="Наприклад, 'Інформація про курс'"
-                                            {...field}
-                                        />
+                        <FormField control={form.control} name="title" render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <Input
+                                        disabled={isSubmitting}
+                                        placeholder="Наприклад, 'Інформація про курс'"
+                                        className="w-full p-3 rounded-lg border border-gray-400 focus:ring-2"
+                                        aria-label="Поле введення назви: Наприклад, 'Просунутий C# та обробка даних у .NET'"
+                                        {...field}
+                                    />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="text-pink-600" />
                                 </FormItem>
                             )}
                         />
-                        <Button
-                            disabled={!isValid || isSubmitting}
-                            type="submit"
-                        >
-                            Створити
-                        </Button>
+                        <div className="flex items-center gap-x-4">
+                            <Button
+                                disabled={!isValid || isSubmitting}
+                                type="submit"
+                                className="w-full transition-colors rounded-lg"
+                                aria-label="Зберегти зміни"
+                            >
+                                Створити
+                            </Button>
+                        </div>
+                        {isSubmitting && <p className="text-sm text-gray-500">Зачекайте, відправка даних...</p>}
                     </form>
                 </Form>
             )}
             {!isCreating && (
                 <div className={cn(
-                    "text-sm mt-4",
-                    !initialData.chapters.length && "text-slate-500 italic"
+                    "text-md text-gray-700 mt-2",
+                    !initialData.chapters.length && "italic"
                 )}>
-                    {!initialData.chapters.length && "Ще не додано жодних розділів"}
+                    {!initialData.chapters.length && "Ще не додано жодних розділів."}
                     <ChaptersList
                         onEditAction={onEdit}
                         onReorderAction={onReorder}
@@ -149,9 +160,9 @@ export const ChaptersForm = ({
                 </div>
             )}
             {!isCreating && (
-                <p className="text-xs text-muted-foreground mt-4">
-                    Перетягніть і відпустіть, щоб змінити порядок розділів.
-                </p>
+                <div className="text-sm text-muted-foreground mt-4">
+                    Перетягніть і відпустіть, щоб змінити порядок розділів
+                </div>
             )}
         </div>
     )

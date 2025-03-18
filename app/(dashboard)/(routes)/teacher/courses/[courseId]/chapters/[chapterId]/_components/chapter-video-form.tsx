@@ -5,60 +5,69 @@ import axios from "axios";
 
 import {Button} from "@/components/ui/button";
 import {PencilIcon, PlusCircle, Video} from "lucide-react";
-import {useState} from "react";
+import {useCallback, useState} from "react";
 import toast from "react-hot-toast";
-import {useRouter} from "next/navigation";
-import MaxPlayer from "@mux/mux-player-react";
 import {FileUpload} from "@/components/file-upload";
+import {useQueryClient} from "@tanstack/react-query";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import ReactPlayer from "react-player";
 
-interface ChapterFormProps {
-    initialData: Chapter & {muxData?: MuxData | null};
+interface VideoFormProps {
+    initialData: {
+        videoUrl?: string;
+    };
     courseId: string;
     chapterId: string;
 }
 
 const formSchema = z.object({
-    videoUrl: z.string().min(1)
+    videoUrl: z.string().trim().min(1, {
+        message: "Необхідно прикріпити відео.",
+    }),
 });
 
-const ChapterVideoForm = ({
-    initialData,
-    courseId,
-    chapterId
-}: ChapterFormProps) => {
+const ChapterVideoForm= ({ initialData, courseId, chapterId }: VideoFormProps) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const toggleEditing = useCallback(() => setIsEditing(prev => !prev), []);
+    const queryClient = useQueryClient();
 
-    const [isEditing, setEditing] = useState(false);
-
-    const toggleEditing = () => setEditing((current) => !current);
-    const router = useRouter();
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            videoUrl: initialData.videoUrl || '',
+        },
+    });
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        try{
+        try {
             await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, values);
-            toast.success("Дані оновлено успішно.");
+            await queryClient.invalidateQueries({ queryKey: ["chapter", courseId, chapterId] });
             toggleEditing();
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            toast.success("Дані оновлено успішно.");
+            form.reset(values);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         }
-    }
+    };
 
     return(
-        <div className="mt-6 border border-gray-900/25 bg-slate-100 rounded-md p-4">
-            <div className="font-medium flex items-center justify-between">
+        <div className="mt-6 bg-slate-50 rounded-lg shadow-lg border border-gray-200 p-6">
+            <div className="font-semibold text-lg flex items-center justify-between mb-4">
                 Відеофайл курсу
-                <Button onClick={toggleEditing} variant="ghost">
-                    {isEditing && (
-                        <>Скасувати</>
-                    )}
-                    {!isEditing && !initialData.videoUrl && (
+                <Button
+                    onClick={toggleEditing}
+                    variant="ghost"
+                    className="flex items-center transition-colors"
+                    aria-label={isEditing ? "Скасувати редагування" : "Прикріпити відео"}
+                >
+                    {isEditing ? "Скасувати" : !isEditing && !initialData.videoUrl ? (
                         <>
                             <PlusCircle className="h-4 w-4 mr-1"/>
                             Прикріпити відео
                         </>
-                    )}
-                    {!isEditing && initialData.videoUrl && (
+                    ) : (
                         <>
                             <PencilIcon className="h-4 w-4 mr-1"/>
                             Змінити відео
@@ -73,8 +82,12 @@ const ChapterVideoForm = ({
                     </div>
                 ) : (
                     <div className="relative aspect-video mt-4">
-                        <MaxPlayer
-                            playbackId={initialData?.muxData?.playbackId || ""}
+                        <ReactPlayer
+                            url={initialData.videoUrl}
+                            controls
+                            width="100%"
+                            height="100%"
+                            playing={false}
                         />
                     </div>
                 )
@@ -89,7 +102,7 @@ const ChapterVideoForm = ({
                             }
                         }}
                     />
-                    <div className="text-xs text-muted-foreground mt-4">
+                    <div className="text-sm text-muted-foreground mt-4">
                         Прикріпіть відео до цього розділу, щоб надати додаткову інформацію та візуальні матеріали.
                     </div>
                 </div>

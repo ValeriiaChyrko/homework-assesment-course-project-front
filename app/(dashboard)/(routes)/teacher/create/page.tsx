@@ -1,10 +1,10 @@
-﻿"use client"
+﻿"use client";
 
 import * as z from "zod";
 import axios from "axios";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {useForm} from "react-hook-form";
-import {useRouter} from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 
 import {
     Form,
@@ -16,8 +16,8 @@ import {
     FormMessage
 } from "@/components/ui/form";
 
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -29,6 +29,7 @@ const formSchema = z.object({
 
 const CreatePage = () => {
     const router = useRouter();
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -36,9 +37,10 @@ const CreatePage = () => {
         }
     });
 
-    const {isSubmitting, isValid} = form.formState;
+    const { isSubmitting, isValid } = form.formState;
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        try{
+        try {
             const response = await axios.post("/api/courses", values);
             router.push(`/teacher/courses/${response.data.id}`);
             toast.success("Курс створено успішно.");
@@ -46,56 +48,58 @@ const CreatePage = () => {
             toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
             console.error(e);
         }
-    }
+    };
 
-    return(
-        <div className="max-w-5xl mx-auto flex items-center justify-center h-full p-6">
+    return (
+        <div className="max-w-5xl mx-auto flex items-center justify-center h-full p-7">
             <div>
-                <h1 className="text-2xl">
+                <h1 className="text-2xl font-semibold text-gray-800 mb-3">
                     Введіть назву курсу
                 </h1>
-                <p className="text-sm text-slay-600">
+                <p className="text-sm text-gray-600 mb-7">
                     Як би ви хотіли назвати свій курс? Не хвилюйтеся, ви зможете змінити назву пізніше.
                 </p>
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-8 mt-8"
+                        className="space-y-9 mt-9"
                     >
                         <FormField
                             control={form.control}
                             name="title"
-                            render={({field}) => (
-                                <FormItem>
-                                    <FormLabel>
-                                        Назва курсу
-                                    </FormLabel>
+                            render={({ field }) => (
+                                <FormItem key="title">
+                                    <FormLabel className="text-gray-700 font-medium">Назва курсу</FormLabel>
                                     <FormControl>
                                         <Input
                                             disabled={isSubmitting}
-                                            placeholder="Наприклад, 'Просунутий C# та обробка даних у .NET'"
+                                            placeholder="Наприклад, 'Просунутий C# у .NET'"
+                                            aria-label="Поле для введення назви"
+                                            className={`mt-3 pl-4 rounded-lg bg-slate-50 border border-gray-200 text-slate-800 transition-all`}
                                             {...field}
                                         />
                                     </FormControl>
-                                    <FormDescription>
-                                        Що саме ви плануєте викладати у межах цього курсу?
+                                    <FormDescription className="text-xs text-gray-500">
+                                        Вкажіть тематику курсу, щоб студенти розуміли його зміст.
                                     </FormDescription>
-                                    <FormMessage />
+                                    <FormMessage className="text-pink-600" />
                                 </FormItem>
                             )}
                         />
-                        <div className="flex items-center gap-x-2">
+                        <div className="flex items-center gap-x-3">
                             <Link href="/">
                                 <Button
-                                    typeof="button"
+                                    type="button"
                                     variant="ghost"
+                                    aria-label="Скасувати створення нового курсу"
                                 >
                                     Скасувати
                                 </Button>
                             </Link>
                             <Button
-                                typeof="submit"
+                                type="submit"
                                 disabled={!isValid || isSubmitting}
+                                aria-label="Продовжити створення нового курсу"
                             >
                                 Продовжити
                             </Button>
@@ -104,7 +108,7 @@ const CreatePage = () => {
                 </Form>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default CreatePage;

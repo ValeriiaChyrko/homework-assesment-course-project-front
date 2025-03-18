@@ -1,81 +1,72 @@
-﻿"use client"
+﻿"use client";
 
-import {useEffect, useState} from "react";
-
+import { useEffect, useState, useCallback } from "react";
 import {
     DragDropContext,
     Droppable,
     Draggable,
     DropResult
 } from "@hello-pangea/dnd";
+import { cn } from "@/lib/utils";
+import { Grip, PencilIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-import {cn} from "@/lib/utils";
-import {Grip, PencilIcon} from "lucide-react";
-import {Badge} from "@/components/ui/badge";
+interface Assignment {
+    id: string;
+    title: string;
+    isPublished: boolean;
+}
 
 interface AssignmentListProps {
     items: Assignment[];
-    onReorderAction: (updateData: { id: string; position: number}[]) => void;
+    onReorderAction: (updateData: { id: string; position: number }[]) => void;
     onEditAction: (id: string) => void;
 }
 
 export const AssignmentList = ({
-    items,
-    onReorderAction,
-    onEditAction
-}: AssignmentListProps) => {
-    const [isMounted, setIsMounted] = useState(false);
-    const [assignments, setAssignments] = useState(items);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+                                   items,
+                                   onReorderAction,
+                                   onEditAction
+                               }: AssignmentListProps) => {
+    const [assignments, setAssignments] = useState<Assignment[]>(items);
 
     useEffect(() => {
         setAssignments(items);
     }, [items]);
 
-    const onDragEnd = (result: DropResult) => {
+    const onDragEnd = useCallback((result: DropResult) => {
         if (!result.destination) return;
 
-        const items = Array.from(assignments);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
+        const updatedAssignments = Array.from(assignments);
+        const [reorderedItem] = updatedAssignments.splice(result.source.index, 1);
+        updatedAssignments.splice(result.destination.index, 0, reorderedItem);
 
-        const startIndex = Math.min(result.source.index, result.destination.index);
-        const endIndex = Math.max(result.source.index, result.destination.index);
+        const bulkUpdatedData = updatedAssignments.map((assignment, index) => ({
+            id: assignment.id,
+            position: index,
+        }));
 
-        const updatedAssignments = items.slice(startIndex, endIndex + 1);
-        setAssignments(items);
-
-        const bulkUpdatedData = updatedAssignments.map((chapter) => ({
-            id: chapter.id,
-            position: items.findIndex((item) => item.id === chapter.id),
-        }))
-
+        setAssignments(updatedAssignments);
         onReorderAction(bulkUpdatedData);
-    }
-
-    if (!isMounted) {
-        return null;
-    }
+    }, [assignments, onReorderAction]);
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="chapters">
-                {provided => (
+                {(provided) => (
                     <div {...provided.droppableProps} ref={provided.innerRef}>
                         {assignments.map((assignment, index) => (
                             <Draggable
                                 key={assignment.id}
                                 draggableId={assignment.id}
                                 index={index}
+                                aria-label="Змінити порядок завдань"
                             >
                                 {(provided) => (
                                     <div
                                         className={cn(
-                                            "flex items-center gap-x-2 bg-slate-200 border-slate-200 border text-slate-700 rounded-md mb-4 text-sm",
-                                            assignment.isPublished && "bg-sky-100 border-sky-200 text-sky-700"
+                                            "flex items-center gap-x-2 bg-slate-200 border-slate-200 border text-slate-900 rounded-md mb-4 text-sm",
+                                            assignment.isPublished && "bg-sky-100 border-sky-200 text-sky-900"
                                         )}
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
@@ -87,17 +78,13 @@ export const AssignmentList = ({
                                             )}
                                             {...provided.dragHandleProps}
                                         >
-                                            <Grip
-                                                className="h-5 w-5"
-                                            />
+                                            <Grip className="h-5 w-5" aria-label="Перетягнути" />
                                         </div>
                                         {assignment.title}
-                                        <div
-                                            className="ml-auto pr-2 flex items-center gap-x-2"
-                                        >
+                                        <div className="ml-auto pr-2 flex items-center gap-x-2">
                                             <Badge
                                                 className={cn(
-                                                    "bg-slate-500 pb-1",
+                                                    "bg-slate-700 pb-1",
                                                     assignment.isPublished && "bg-sky-700"
                                                 )}
                                             >
@@ -106,6 +93,7 @@ export const AssignmentList = ({
                                             <PencilIcon
                                                 onClick={() => onEditAction(assignment.id)}
                                                 className="w-4 h-4 cursor-pointer hover:opacity-75"
+                                                aria-label="Редагувати"
                                             />
                                         </div>
                                     </div>
@@ -117,5 +105,5 @@ export const AssignmentList = ({
                 )}
             </Droppable>
         </DragDropContext>
-    )
-}
+    );
+};

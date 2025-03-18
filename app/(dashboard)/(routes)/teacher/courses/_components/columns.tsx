@@ -22,6 +22,7 @@ export const columns: ColumnDef<Course>[] = [
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    aria-label="Сортувати за назвою"
                 >
                     Назва курсу
                     <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -36,6 +37,7 @@ export const columns: ColumnDef<Course>[] = [
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    aria-label="Сортувати за статусом публікації"
                 >
                     Статус публікації
                     <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -46,7 +48,7 @@ export const columns: ColumnDef<Course>[] = [
             const status = getValue<boolean>() || false;
             return (
                 <Badge className={cn(
-                    "bg-slate-500/90 pb-1",
+                    "bg-slate-700/90 pb-1",
                     status && "bg-sky-700/90"
                 )}>
                     {status ? "Доступний для студентів" : "Прихований"}
@@ -55,23 +57,23 @@ export const columns: ColumnDef<Course>[] = [
         },
     },
     {
-        accessorKey: "category.name",
-        header: ({column}) => {
+        accessorKey: "category",
+        header: ({ column }) => {
             return (
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    aria-label="Сортувати за категорією"
                 >
                     Категорія
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
-            )
-        },
-        cell: ({ getValue }) => {
-                const name = getValue<string>() || '';
-                return (
-                    <span>{name ? name : "Без категорії"}</span>
             );
+        },
+        cell: ({ row }) => {
+            const category = row.original.category;
+            const categoryName = category?.name || "Без категорії";
+            return <span>{categoryName}</span>;
         },
     },
     {
@@ -82,17 +84,17 @@ export const columns: ColumnDef<Course>[] = [
             return(
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-4 w-auto p-0 flex items-center">
-                            <span className="hidden lg:flex items-center">
+                        <Button variant="ghost" className="h-4 w-auto p-0 flex items-center" aria-label="Меню параметрів">
+                            <span className="hidden md:!flex lg:flex items-center">
                                 <Menu className="mr-2 h-4 w-4" />
                                 Меню параметрів
                             </span>
-                            <MoreHorizontal className="block h-4 w-4 lg:hidden" />
+                            <MoreHorizontal className="block h-4 w-4 lg:!hidden" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <Link href={`/teacher/courses/${id}`}>
-                            <DropdownMenuItem className="bg-slate-50 border-slate-200">
+                    <DropdownMenuContent align="end" className="border border-gray-200">
+                        <Link href={`/teacher/courses/${id}`} aria-label="Редагувати курс">
+                            <DropdownMenuItem className="bg-white p-2" aria-label="Кнопка редагувати">
                                 <PencilIcon className="h-4 w-4 mr-2"/>
                                 Редагувати
                             </DropdownMenuItem>

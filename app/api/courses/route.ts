@@ -17,8 +17,7 @@ export async function GET(req: Request) {
         if (!token || !userId) {
             console.error("GET_COURSES: No token or userId found");
             return {
-                completedCourses: [],
-                coursesInProgress: []
+                courses: [],
             };
         }
 
@@ -62,7 +61,7 @@ export async function GET(req: Request) {
             userId: item.userId,
         }));
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             courses,
             totalCount: responseData.totalCount,
             page: responseData.page,
@@ -70,6 +69,9 @@ export async function GET(req: Request) {
             hasPreviousPage: responseData.hasPreviousPage,
             hasNextPage: responseData.hasNextPage,
         });
+
+        response.headers.set("Cache-Control", "max-age=900, must-revalidate");
+        return response;
     } catch (e) {
         console.error("GET_DASHBOARD_COURSES", e);
         return NextResponse.json({

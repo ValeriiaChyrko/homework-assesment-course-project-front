@@ -1,4 +1,6 @@
-﻿import {redirect} from "next/navigation";
+﻿"use client";
+
+import {redirect} from "next/navigation";
 import AssignmentHeader
     from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/(assignmentId)/_components/assignment-header";
 import AssignmentInformation

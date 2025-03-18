@@ -12,7 +12,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-        lang="ua"
+        lang="uk"
         data-lt-installed="true"
     >
       <body>

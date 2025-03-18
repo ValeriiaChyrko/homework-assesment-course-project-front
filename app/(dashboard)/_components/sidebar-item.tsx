@@ -32,6 +32,7 @@ export const SidebarItem = ({
         <button
         onClick={onClick}
         type="button"
+        aria-label={`Пункт меню ${label}`}
         className={cn(
             "flex items-center gap-x-2 text-slate-500 text-sm font-[500] pl-6 transition-all " +
             "hover:text-slate-600 hover:bg-slate-300/20",

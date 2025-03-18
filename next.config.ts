@@ -1,12 +1,17 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-    transpilePackages: ["@uploadthing/mime-types"],
+const nextConfig = {
     images: {
-        domains:  [
-            "utfs.io"
-        ]
-    }
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'uattpugz9u.ufs.sh',
+            },
+            {
+                protocol: 'https',
+                hostname: 'utfs.io',
+            },
+        ],
+    },
+    transpilePackages: ["@uploadthing/mime-types"],
 };
 
 export default nextConfig;

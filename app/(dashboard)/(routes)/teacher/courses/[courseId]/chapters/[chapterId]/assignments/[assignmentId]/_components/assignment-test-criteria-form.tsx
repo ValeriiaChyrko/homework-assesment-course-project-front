@@ -7,24 +7,42 @@ import {useForm} from "react-hook-form";
 
 import {
     Form,
-    FormControl, FormDescription,
+    FormControl,
     FormField,
     FormItem,
     FormMessage,
 } from "@/components/ui/form"
 
 import {Button} from "@/components/ui/button";
-import {PencilIcon, SquareCheck, SquareX} from "lucide-react";
-import {useState} from "react";
+import {FileCheck2Icon, FileJson2Icon, FolderCodeIcon, PencilIcon, SquareCheck, SquareX} from "lucide-react";
+import {useCallback, useEffect, useState} from "react";
 import toast from "react-hot-toast";
-import {useRouter} from "next/navigation";
 import {cn} from "@/lib/utils";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Checkbox} from "@/components/ui/checkbox";
+import {useQueryClient} from "@tanstack/react-query";
+import { Card } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 
 interface ChapterDescriptionFormProps {
-    initialData: Assignment;
+    initialData: {
+        maxScore: number,
+        maxAttemptsAmount: number,
+
+        attemptCompilationSectionEnable: boolean,
+        attemptTestsSectionEnable: boolean,
+        attemptQualitySectionEnable: boolean,
+
+        attemptCompilationMaxScore: number,
+        attemptCompilationMinScore: number,
+
+        attemptTestsMaxScore: number,
+        attemptTestsMinScore: number,
+
+        attemptQualityMaxScore: number,
+        attemptQualityMinScore: number,
+    };
     courseId: string;
     chapterId: string;
     assignmentId: string;
@@ -39,69 +57,94 @@ const formSchema = z.object({
     attemptQualitySectionEnable: z.boolean().default(false),
 
     attemptCompilationMaxScore: z.number().positive("Число повинно бути більше 0"),
-    attemptCompilationMinScore: z.number().nonnegative("Число повинно бути більше 0"),
+    attemptCompilationMinScore: z.number().nonnegative("Число повинно бути додатнім."),
 
     attemptTestsMaxScore: z.number().positive("Число повинно бути більше 0"),
-    attemptTestsMinScore: z.number().nonnegative("Число повинно бути більше 0"),
+    attemptTestsMinScore: z.number().nonnegative("Число повинно бути додатнім."),
 
     attemptQualityMaxScore: z.number().positive("Число повинно бути більше 0"),
-    attemptQualityMinScore: z.number().nonnegative("Число повинно бути більше 0"),
+    attemptQualityMinScore: z.number().nonnegative("Число повинно бути додатнім."),
 });
 
-export const AssignmentTestCriteriaForm = ({
-    initialData,
-    courseId,
-    chapterId,
-    assignmentId
-}: ChapterDescriptionFormProps) => {
-    const [isEditing, setEditing] = useState(false);
-
-    const toggleEditing = () => setEditing((current) => !current);
-    const router = useRouter();
+export const AssignmentTestCriteriaForm = ({ initialData, courseId, chapterId, assignmentId }: ChapterDescriptionFormProps) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const toggleEditing = useCallback(() => setIsEditing(prev => !prev), []);
+    const queryClient = useQueryClient();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            maxScore: initialData.maxScore,
-            maxAttemptsAmount: initialData.maxAttemptsAmount,
-            attemptCompilationSectionEnable: initialData.attemptCompilationSectionEnable,
-            attemptTestsSectionEnable: initialData.attemptTestsSectionEnable,
-            attemptQualitySectionEnable: initialData.attemptQualitySectionEnable,
+            ...initialData
         },
         mode: "onChange",
     });
 
-    const {isSubmitting, isValid} = form.formState;
+    const { isSubmitting, isValid } = form.formState;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        try{
+        try {
             await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`, values);
-            toast.success("Дані оновлено успішно.");
+            await queryClient.invalidateQueries({ queryKey: ["assignment", courseId, chapterId, assignmentId] });
             toggleEditing();
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            toast.success("Дані оновлено успішно.");
+            form.reset(values);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         }
-    }
+    };
+
+    const [weights, setWeights] = useState({ compilation: 5, tests: 65, quality: 30 });
+
+    useEffect(() => {
+        recalculateScores();
+    }, [weights, form.watch("maxScore"), form.watch("attemptCompilationSectionEnable"), form.watch("attemptTestsSectionEnable"), form.watch("attemptQualitySectionEnable")]);
+
+    const recalculateScores = () => {
+        const maxScore = form.getValues("maxScore");
+
+        const sectionKeys = ["compilation", "tests", "quality"] as const;
+
+        const enabledSections = sectionKeys.filter(section =>
+            form.getValues(`attempt${section.charAt(0).toUpperCase() + section.slice(1)}SectionEnable` as keyof z.infer<typeof formSchema>)
+        );
+
+        const enabledWeight = enabledSections.reduce((sum, section) =>
+            sum + weights[section as keyof typeof weights], 0
+        );
+
+        enabledSections.forEach(section => {
+            const maxSectionScore = enabledWeight > 0
+                ? Math.round((weights[section as keyof typeof weights] / enabledWeight) * maxScore)
+                : 0;
+
+            form.setValue(
+                `attempt${section.charAt(0).toUpperCase() + section.slice(1)}MaxScore` as keyof z.infer<typeof formSchema>,
+                maxSectionScore
+            );
+        });
+    };
 
     return(
-        <div className="mt-6 border bg-slate-100 rounded-md p-4">
-            <div className="font-medium flex items-center justify-between">
+        <div className="mt-6 bg-slate-50 rounded-lg shadow-lg border border-gray-200 p-6">
+            <div className="font-semibold text-lg flex items-center justify-between mb-4">
                 Параметри тестування
-                <Button onClick={toggleEditing} variant="ghost">
-                    {isEditing ? (
-                        <>Скасувати</>
-                    ) : (
+                <Button
+                    onClick={toggleEditing}
+                    variant="ghost"
+                    className="flex items-center transition-colors"
+                    aria-label={isEditing ? "Скасувати редагування" : "Змінити параметри оцінювання завдання"}
+                >
+                    {isEditing ? "Скасувати" : (
                         <>
-                            <PencilIcon className="h-4 w-4 mr-1"/>
+                            <PencilIcon className="h-4 w-4 mr-2" />
                             Змінити параметри
                         </>
                     )}
                 </Button>
             </div>
             {!isEditing && (
-                <div className="text-sm mt-2 space-y-4">
+                <div className="text-md mt-2 space-y-4">
                     {/* Section 1 */}
                     <div className="p-y-4">
                         <div>
@@ -109,7 +152,7 @@ export const AssignmentTestCriteriaForm = ({
                             {initialData.maxScore ? (
                                 <span className="font-semibold text-slate-700 ml-2">{initialData.maxScore}</span>
                             ) : (
-                                <span className="text-slate-500 italic">100</span>
+                                <span className="text-slate-500 italic ml-2">100</span>
                             )}
                         </div>
                         <div>
@@ -117,7 +160,7 @@ export const AssignmentTestCriteriaForm = ({
                             {initialData.maxAttemptsAmount ? (
                                 <span className="font-semibold text-slate-700 ml-2">{initialData.maxAttemptsAmount}</span>
                             ) : (
-                                <span className="text-slate-500 italic">5</span>
+                                <span className="text-slate-500 italic ml-2">5</span>
                             )}
                         </div>
                     </div>
@@ -240,7 +283,7 @@ export const AssignmentTestCriteriaForm = ({
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-2 mt-4"
                     >
-                        <Label htmlFor="maxScore" className="text-sm text-slate-500">Максимальний бал:</Label>
+                        <Label htmlFor="maxScore" className="text-md font-bold">Максимальний бал:</Label>
                         <FormField
                             control={form.control}
                             name="maxScore"
@@ -251,11 +294,13 @@ export const AssignmentTestCriteriaForm = ({
                                             type="number"
                                             disabled={isSubmitting}
                                             placeholder="Введіть ціле число, що перевищує 0"
+                                            className="border border-gray-900/25"
                                             {...field}
                                             value={field.value}
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 field.onChange(value ? parseFloat(value) : 0);
+                                                recalculateScores();
                                             }}
                                         />
                                     </FormControl>
@@ -263,7 +308,7 @@ export const AssignmentTestCriteriaForm = ({
                                 </FormItem>
                             )}
                         />
-                        <Label htmlFor="maxAttemptsAmount" className="text-sm text-slate-500">Кількість спроб:</Label>
+                        <Label htmlFor="maxAttemptsAmount" className="text-md font-bold">Кількість спроб:</Label>
                         <FormField
                             control={form.control}
                             name="maxAttemptsAmount"
@@ -274,6 +319,7 @@ export const AssignmentTestCriteriaForm = ({
                                             type="number"
                                             disabled={isSubmitting}
                                             placeholder="Введіть ціле число, що перевищує 1"
+                                            className="border border-gray-900/25"
                                             {...field}
                                             value={field.value}
                                             onChange={(e) => {
@@ -289,201 +335,169 @@ export const AssignmentTestCriteriaForm = ({
                         <FormField
                             control={form.control}
                             name="attemptCompilationSectionEnable"
-                            render={({field}) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                            className="mt-1"
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormDescription>
-                                            Оберіть цю опцію, щоб дозволити перевірку рішення на компіляцію.
-                                        </FormDescription>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Label htmlFor="attemptCompilationMaxScore" className="text-sm text-slate-500">Максимальний бал:</Label>
-                        <FormField
-                            control={form.control}
-                            name="attemptCompilationMaxScore"
-                            render={({field}) => (
+                            render={({ field }) => (
                                 <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            disabled={isSubmitting}
-                                            placeholder="Введіть ціле число, що перевищує 0"
-                                            {...field}
-                                            value={field.value}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                field.onChange(value ? parseFloat(value) : 0);
-                                            }}
+                                    <Card className="p-4 flex flex-col gap-2 rounded-lg shadow-lg border border-gray-200 bg-white">
+                                        <div className="flex items-center gap-3 px-4">
+                                            <FolderCodeIcon className="size-8" />
+                                            <div className="flex-1 px-2">
+                                                <h3 className="text-md font-bold">Компіляція</h3>
+                                                <p className="text-sm text-gray-600">
+                                                    {form.watch("attemptCompilationMaxScore")} Балів
+                                                </p>
+                                            </div>
+                                            <FormControl>
+                                                <Checkbox
+                                                    className="h-6 w-6 border-2 border-emerald-600/80 text-emerald-600"
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-sm text-gray-500">
+                                            <span>% від загального балу</span>
+                                            <Input
+                                                value={`${weights.compilation}%`}
+                                                onChange={(e) => {
+                                                    const newValue = Number(e.target.value);
+                                                    if (!isNaN(newValue) && newValue >= 0 && newValue <= 100) {
+                                                        setWeights((prev) => ({ ...prev, compilation: newValue }));
+                                                    }
+                                                }}
+                                                className="max-w-17 mb-2 bg-white/80 border border-gray-900/25"
+                                            />
+                                        </div>
+
+                                        <Slider
+                                            value={[weights.compilation]}
+                                            max={100}
+                                            step={1}
+                                            onValueChange={(v) =>
+                                                setWeights((prev) => ({ ...prev, compilation: v[0] }))
+                                            }
+                                            className="py-1"
                                         />
-                                    </FormControl>
-                                    <FormMessage />
+
+                                        <div className="leading-none text-xs text-pink-600">
+                                            {Object.values(weights).reduce((sum, w) => sum + w, 0) !== 100
+                                                ? "Сума всіх відсотків повинна бути 100%"
+                                                : ""}
+                                        </div>
+                                    </Card>
                                 </FormItem>
                             )}
                         />
-                        <Label htmlFor="attemptCompilationMinScore" className="text-sm text-slate-500">Мінімальний бал:</Label>
-                        <FormField
-                            control={form.control}
-                            name="attemptCompilationMinScore"
-                            render={({field}) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            disabled={isSubmitting}
-                                            placeholder="Введіть ціле число, що перевищує 0"
-                                            {...field}
-                                            value={field.value}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                field.onChange(value ? parseFloat(value) : 0);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+
                         <FormField
                             control={form.control}
                             name="attemptTestsSectionEnable"
-                            render={({field}) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                            className="mt-1"
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormDescription>
-                                            Оберіть цю опцію, щоб дозволити перевірку рішення на відповідність тестів.
-                                        </FormDescription>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Label htmlFor="attemptTestsMaxScore" className="text-sm text-slate-500">Максимальний бал:</Label>
-                        <FormField
-                            control={form.control}
-                            name="attemptTestsMaxScore"
-                            render={({field}) => (
+                            render={({ field }) => (
                                 <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            disabled={isSubmitting}
-                                            placeholder="Введіть ціле число, що перевищує 0"
-                                            {...field}
-                                            value={field.value}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                field.onChange(value ? parseFloat(value) : 0);
-                                            }}
+                                    <Card className="p-4 flex flex-col gap-2 rounded-lg shadow-lg border border-gray-200 bg-white">
+                                        <div className="flex items-center gap-3 px-4">
+                                            <FileCheck2Icon className="size-8" />
+                                            <div className="flex-1 px-2">
+                                                <h3 className="text-md font-bold">Тестування</h3>
+                                                <p className="text-sm text-gray-600">
+                                                    {form.watch("attemptTestsMaxScore")} Балів
+                                                </p>
+                                            </div>
+                                            <FormControl>
+                                                <Checkbox
+                                                    className="h-6 w-6 border-2 border-emerald-600/80 text-emerald-600"
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-md text-gray-500">
+                                            <span>% від загального балу</span>
+                                            <Input
+                                                value={`${weights.tests}%`}
+                                                onChange={(e) => {
+                                                    const newValue = Number(e.target.value);
+                                                    if (!isNaN(newValue) && newValue >= 0 && newValue <= 100) {
+                                                        setWeights((prev) => ({ ...prev, tests: newValue }));
+                                                    }
+                                                }}
+                                                className="max-w-17 mb-2 bg-white/80 border border-gray-900/25"
+                                            />
+                                        </div>
+
+                                        <Slider
+                                            value={[weights.tests]}
+                                            max={100}
+                                            step={1}
+                                            onValueChange={(v) =>
+                                                setWeights((prev) => ({ ...prev, tests: v[0] }))
+                                            }
+                                            className="py-1"
                                         />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Label htmlFor="attemptTestsMinScore" className="text-sm text-slate-500">Мінімальний бал:</Label>
-                        <FormField
-                            control={form.control}
-                            name="attemptTestsMinScore"
-                            render={({field}) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            disabled={isSubmitting}
-                                            placeholder="Введіть ціле число, що перевищує 0"
-                                            {...field}
-                                            value={field.value}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                field.onChange(value ? parseFloat(value) : 0);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
+
+                                        <div className="leading-none text-xs text-pink-600">
+                                            {Object.values(weights).reduce((sum, w) => sum + w, 0) !== 100
+                                                ? "Сума всіх відсотків повинна бути 100%"
+                                                : ""}
+                                        </div>
+                                    </Card>
                                 </FormItem>
                             )}
                         />
                         <FormField
                             control={form.control}
                             name="attemptQualitySectionEnable"
-                            render={({field}) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                            className="mt-1"
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormDescription>
-                                            Оберіть цю опцію, щоб дозволити перевірку коду на якість.
-                                        </FormDescription>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Label htmlFor="attemptQualityMaxScore" className="text-sm text-slate-500">Максимальний бал:</Label>
-                        <FormField
-                            control={form.control}
-                            name="attemptQualityMaxScore"
-                            render={({field}) => (
+                            render={({ field }) => (
                                 <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            disabled={isSubmitting}
-                                            placeholder="Введіть ціле число, що перевищує 0"
-                                            {...field}
-                                            value={field.value}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                field.onChange(value ? parseFloat(value) : 0);
-                                            }}
+                                    <Card className="p-4 flex flex-col gap-2 rounded-lg shadow-lg border border-gray-200 bg-white">
+                                        <div className="flex items-center gap-3 px-4">
+                                            <FileJson2Icon className="size-8" />
+                                            <div className="flex-1 px-2">
+                                                <h3 className="text-md font-bold">Якість коду</h3>
+                                                <p className="text-sm text-gray-600">
+                                                    {form.watch("attemptQualityMaxScore")} Балів
+                                                </p>
+                                            </div>
+                                            <FormControl>
+                                                <Checkbox
+                                                    className="h-6 w-6 border-2 border-emerald-600/80 text-emerald-600"
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-md text-gray-500">
+                                            <span>% від загального балу</span>
+                                            <Input
+                                                value={`${weights.quality}%`}
+                                                onChange={(e) => {
+                                                    const newValue = Number(e.target.value);
+                                                    if (!isNaN(newValue) && newValue >= 0 && newValue <= 100) {
+                                                        setWeights((prev) => ({ ...prev, quality: newValue }));
+                                                    }
+                                                }}
+                                                className="max-w-17 mb-2 bg-white/80 border border-gray-900/25"
+                                            />
+                                        </div>
+
+                                        <Slider
+                                            value={[weights.quality]}
+                                            max={100}
+                                            step={1}
+                                            onValueChange={(v) =>
+                                                setWeights((prev) => ({ ...prev, quality: v[0] }))
+                                            }
+                                            className="py-1"
                                         />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Label htmlFor="attemptQualityMinScore" className="text-sm text-slate-500">Мінімальний бал:</Label>
-                        <FormField
-                            control={form.control}
-                            name="attemptQualityMinScore"
-                            render={({field}) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            disabled={isSubmitting}
-                                            placeholder="Введіть ціле число, що перевищує 0"
-                                            {...field}
-                                            value={field.value}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                field.onChange(value ? parseFloat(value) : 0);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
+
+                                        <div className="leading-none text-xs text-pink-600">
+                                            {Object.values(weights).reduce((sum, w) => sum + w, 0) !== 100
+                                                ? "Сума всіх відсотків повинна бути 100%"
+                                                : ""}
+                                        </div>
+                                    </Card>
                                 </FormItem>
                             )}
                         />

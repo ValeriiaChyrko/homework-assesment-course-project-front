@@ -15,18 +15,19 @@ const CourseIdPage = ({
     const [courseId, setCourseId] = useState('');
 
     useEffect(() => {
-        const getCourseWithPublishedChapters = async () => {
+        const getCourseWithProgressAndChapters = async () => {
             try {
-                const {courseId} = await params;
+                const { courseId } = await params;
                 setCourseId(courseId);
-                const response = await axios.get(`/api/courses/${courseId}/chapters`);
-                setCourse(response.data);
+                const response = await axios.get(`/api/courses/${courseId}/progress`);
+                const data = response.data;
+                setCourse(data.course || null);
             } catch (error) {
                 console.error("Error fetching courses:", error);
             }
         };
 
-        getCourseWithPublishedChapters().then();
+        getCourseWithProgressAndChapters();
     }, [params]);
 
     if (!course) {

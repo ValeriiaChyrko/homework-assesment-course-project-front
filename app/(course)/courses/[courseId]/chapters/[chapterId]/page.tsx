@@ -1,10 +1,12 @@
-﻿import {Banner} from "@/components/banner";
+﻿"use client";
+
+import {Banner} from "@/components/banner";
 import {VideoPlayer} from "./_components/video-player";
 import {CourseEnrollButton} from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/_components/course-enroll-button";
 import Image from "next/image";
 import OppsPageImageSrc from "@/public/opps-page.svg";
 import {Separator} from "@/components/ui/separator";
-import {Preview} from "@/components/preview";
+import {Preview} from "@/components/editor/preview";
 import {File} from "lucide-react"
 import { CourseProgressButton } from "./_components/course-progress-button";
 import AssignmentIdPage from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/(assignmentId)/page";

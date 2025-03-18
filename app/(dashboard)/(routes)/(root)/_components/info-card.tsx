@@ -24,7 +24,11 @@ export const InfoCard = ({
     }
 
     return (
-        <div className="border rounded-md flex items-center gap-x-2 p-3">
+        <div
+            className={`border rounded-md flex items-center gap-x-2 p-3 ${
+                variant === "success" ? "bg-green-50 border-green300" : "bg-blue-50 border-blue-300"
+            }`}
+        >
             <IconBadge
                 variant={variant}
                 icon={Icon}
@@ -33,7 +37,7 @@ export const InfoCard = ({
                 <p className="font-medium">
                     {label}
                 </p>
-                <p className="text-gray-500 text-sm">
+                <p className="text-gray-700 text-sm">
                     {numbersOfItems} {courseText}
                 </p>
             </div>

@@ -1,30 +1,39 @@
 ﻿"use client";
 
 import { DataTable } from "@/app/(dashboard)/(routes)/teacher/courses/_components/data-table";
+import { DataTableSkeleton } from "@/app/(dashboard)/(routes)/teacher/courses/_components/data-table-skeleton";
 import { columns } from "./_components/columns";
-import {useEffect, useState} from "react";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
+const fetchCourses = async () => {
+    const response = await axios.get("/api/courses/owned");
+    return response.data.courses || [];
+};
+
 const CoursesPage = () => {
-    const [courses, setCourses] = useState([]);
+    const { data: courses, isLoading, isError } = useQuery({
+        queryKey: ["courses"],
+        queryFn: fetchCourses,
+    });
 
-    useEffect(() => {
-        const getCoursesWithProgressAndCategory = async () => {
-            try {
-                const response = await axios.get('/api/courses/owned');
-                setCourses(response.data.courses || []);
-            } catch (error) {
-                console.error("Error fetching courses:", error);
-                setCourses([]);
-            }
-        };
+    if (isLoading) {
+        return (
+            <div className="px-6">
+                <div className="container mx-auto py-6 w-full">
+                    <DataTableSkeleton />
+                </div>
+            </div>
+        );
+    }
 
-        getCoursesWithProgressAndCategory().then();
-    }, []);
+    if (isError) {
+        return <p>Error fetching courses.</p>;
+    }
 
     return (
-        <div className="p-6">
-            <div className="container mx-auto py-10">
+        <div className="px-6">
+            <div className="container mx-auto py-6 w-full">
                 <DataTable columns={columns} data={courses} />
             </div>
         </div>

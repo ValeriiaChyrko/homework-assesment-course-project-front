@@ -21,27 +21,32 @@ import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
 import {cn} from "@/lib/utils";
 import { AssignmentList } from "./assignment-list";
+import {useQueryClient} from "@tanstack/react-query";
 
 interface AssignmentsFormProps {
-    initialData: Chapter & { assignments: Assignment[] };
+    initialData: {
+        title: string;
+        assignments: Assignment[];
+    };
     courseId: string;
     chapterId: string;
 }
 
 const formSchema = z.object({
-    title: z.string().min(1),
+    title: z.string().trim().min(1, {
+        message: "Необхідно вказати назву завдання.",
+    }),
 });
 
-export const AssignmentForm = ({
-    initialData,
-    courseId,
-    chapterId
-}: AssignmentsFormProps) => {
+export const AssignmentForm= ({ initialData, courseId, chapterId }: AssignmentsFormProps) => {
     const [isCreating, setIsCreating] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const toggleCreating = () => setIsCreating((current) => !current);
     const router = useRouter();
+
+    const toggleCreating = () => setIsCreating((current) => !current);
+    const queryClient = useQueryClient();
+
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -53,16 +58,17 @@ export const AssignmentForm = ({
     const {isSubmitting, isValid} = form.formState;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        try{
+        try {
             await axios.post(`/api/courses/${courseId}/chapters/${chapterId}/assignments`, values);
-            toast.success("Завдання створено успішно.");
+            await queryClient.invalidateQueries({ queryKey: ["chapter", courseId, chapterId] });
             toggleCreating();
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            toast.success("Завдання створено успішно.");
+            form.reset(values);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         }
-    }
+    };
 
     const onReorder = async (updatedData: { id: string; position: number }[]) => {
         try{
@@ -71,12 +77,12 @@ export const AssignmentForm = ({
             await axios.put(`/api/courses/${courseId}/chapters/${chapterId}/assignments/reorder`, {
                 list: updatedData
             });
+            await queryClient.invalidateQueries({ queryKey: ["chapter", courseId, chapterId] });
 
             toast.success("Порядок завдань змінено успішно.");
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         } finally {
             setIsUpdating(false);
         }
@@ -87,18 +93,21 @@ export const AssignmentForm = ({
     }
 
     return(
-        <div className="relative mt-6 border border-gray-900/25 bg-slate-100 rounded-md p-4">
+        <div className="mt-6 bg-slate-50 rounded-lg shadow-lg border border-gray-200 p-6 relative">
             {isUpdating && (
                 <div className="absolute h-full w-full bg-slate-500/20 top-0 right-0 rounded-m flex items-center justify-center">
-                    <Loader2 className="animate-spin h-6 w-6 text-sky-700"/>
+                    <Loader2 className="animate-spin h-8 w-8 text-sky-700"/>
                 </div>
             )}
-            <div className="font-medium flex items-center justify-between">
+            <div className="font-semibold text-lg flex items-center justify-between mb-4">
                 Завдання курсу
-                <Button onClick={toggleCreating} variant="ghost">
-                    {isCreating ? (
-                        <>Скасувати</>
-                    ) : (
+                <Button
+                    onClick={toggleCreating}
+                    variant="ghost"
+                    className="flex items-center transition-colors"
+                    aria-label={isCreating ? "Скасувати створення нового завдання" : "Додати нове завдання до розділу курсу"}
+                >
+                    {isCreating ? "Скасувати" : (
                         <>
                             <PlusCircle className="h-4 w-4 mr-1"/>
                             Додати нове завдання
@@ -112,37 +121,41 @@ export const AssignmentForm = ({
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-4 mt-4"
                     >
-                        <FormField
-                            control={form.control}
-                            name="title"
-                            render={({field}) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            disabled={isSubmitting}
-                                            placeholder="Наприклад, 'Практичне завдання №1'"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                        <FormField control={form.control} name="title" render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <Input
+                                        disabled={isSubmitting}
+                                        placeholder="Наприклад, 'Практичне завдання №1'"
+                                        className="w-full p-3 rounded-lg border border-gray-400 focus:ring-2"
+                                        aria-label="Поле введення назви: Наприклад, 'Практичне завдання №1'"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage className="text-pink-600" />
+                            </FormItem>
                             )}
                         />
-                        <Button
-                            disabled={!isValid || isSubmitting}
-                            type="submit"
-                        >
-                            Створити
-                        </Button>
+                        <div className="flex items-center gap-x-4">
+                            <Button
+                                disabled={!isValid || isSubmitting}
+                                type="submit"
+                                className="w-full transition-colors rounded-lg"
+                                aria-label="Зберегти зміни"
+                            >
+                                Створити
+                            </Button>
+                        </div>
+                        {isSubmitting && <p className="text-sm text-gray-500">Зачекайте, відправка даних...</p>}
                     </form>
                 </Form>
             )}
             {!isCreating && (
                 <div className={cn(
-                    "text-sm mt-4",
-                    !initialData.assignments.length && "text-slate-500 italic"
+                    "text-md text-gray-700 mt-2",
+                    !initialData.assignments.length && "italic"
                 )}>
-                    {!initialData.assignments.length && "Ще не додано жодних завдань"}
+                    {!initialData.assignments.length && "Ще не додано жодних завдань."}
                     <AssignmentList
                         onEditAction={onEdit}
                         onReorderAction={onReorder}
@@ -151,9 +164,9 @@ export const AssignmentForm = ({
                 </div>
             )}
             {!isCreating && (
-                <p className="text-xs text-muted-foreground mt-4">
+                <div className="text-sm text-muted-foreground mt-4">
                     Перетягніть і відпустіть, щоб змінити порядок завдань.
-                </p>
+                </div>
             )}
         </div>
     )

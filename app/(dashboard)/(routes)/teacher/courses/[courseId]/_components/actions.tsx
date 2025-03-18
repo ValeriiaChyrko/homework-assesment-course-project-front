@@ -1,13 +1,13 @@
-﻿"use client"
+﻿"use client";
 
-import {Button} from "@/components/ui/button";
-import {Trash2} from "lucide-react";
-import {ConfirmDialog} from "@/components/models/confirm-modal";
-import {useState} from "react";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/models/confirm-modal";
+import { useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
-import {useRouter} from "next/navigation";
-import {useConfettiStore} from "@/hooks/use-confetti-store";
+import { useRouter } from "next/navigation";
+import { useConfettiStore } from "@/hooks/use-confetti-store";
 
 interface ActionsProps {
     disabled: boolean;
@@ -16,73 +16,65 @@ interface ActionsProps {
 }
 
 export const Actions = ({
-    disabled,
-    courseId,
-    isPublished,
-}: ActionsProps) => {
+                            disabled,
+                            courseId,
+                            isPublished,
+                        }: ActionsProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
     const confetti = useConfettiStore();
 
-    const onClick = async () => {
+    const handlePublishToggle = useCallback(async () => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
-
-            if (isPublished) {
-                await axios.patch(`/api/courses/${courseId}/unpublish`);
-                toast.success("Курс знято з публікації.");
-            } else {
-                await axios.patch(`/api/courses/${courseId}/publish`);
-                toast.success("Курс опубліковано.");
-                confetti.onOpen();
-            }
-
+            const action = isPublished ? 'unpublish' : 'publish';
+            await axios.patch(`/api/courses/${courseId}/${action}`);
+            toast.success(`Курс ${isPublished ? 'знято з публікації' : 'опубліковано'}.`);
+            if (!isPublished) confetti.onOpen();
             router.refresh();
-        } catch (e) {
+        } catch (error) {
             toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            console.error(error);
         } finally {
             setIsLoading(false);
         }
-    }
+    }, [isPublished, courseId, router, confetti]);
 
-    const onDelete = async () => {
+    const handleDelete = useCallback(async () => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
-
             await axios.delete(`/api/courses/${courseId}`);
-
             toast.success("Дані видалено успішно.");
             router.refresh();
             router.push(`/teacher/courses`);
-        } catch (e) {
+        } catch (error) {
             toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            console.error(error);
         } finally {
             setIsLoading(false);
         }
-    }
+    }, [courseId, router]);
 
     return (
         <div className="flex items-center gap-x-2">
             <Button
-                onClick={onClick}
+                onClick={handlePublishToggle}
                 disabled={disabled || isLoading}
                 variant="outline"
-                size="sm"
+                className="flex items-center transition-colors text-md"
+                aria-label={isPublished ? "Зняти з публікації курс" : "Опублікувати курс"}
             >
                 {isPublished ? "Зняти з публікації" : "Опублікувати"}
             </Button>
-            <ConfirmDialog
-                onConfirm={onDelete}
-            >
+            <ConfirmDialog onConfirm={handleDelete}>
                 <Button
                     disabled={isLoading}
-                    size="sm"
+                    className="flex items-center transition-colors"
+                    aria-label="Видалити курс"
                 >
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </ConfirmDialog>
         </div>
-    )
-}
+    );
+};

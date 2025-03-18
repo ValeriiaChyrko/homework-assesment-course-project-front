@@ -16,9 +16,9 @@ import {
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {PencilIcon} from "lucide-react";
-import {useState} from "react";
+import {useCallback, useState} from "react";
 import toast from "react-hot-toast";
-import {useRouter} from "next/navigation";
+import {useQueryClient} from "@tanstack/react-query";
 
 interface ChapterTitleFormProps {
     initialData: {
@@ -26,98 +26,99 @@ interface ChapterTitleFormProps {
     };
     courseId: string;
     chapterId: string;
-};
+}
 
 const formSchema = z.object({
-    title: z.string().min(1, {
-        message: "Необхідно вказати назву.",
-    }),
+    title: z.string().trim()
+        .min(1, {
+            message: "Необхідно вказати назву розділу.",
+        })
+        .max(64, {
+            message: "Назва розділу курсу не повинна перевищувати 64 символів."
+        }),
 });
 
-export const TitleForm = ({
-    initialData,
-    courseId,
-    chapterId,
-}: ChapterTitleFormProps) => {
-    const [isEditing, setEditing] = useState(false);
-
-    const toggleEditing = () => setEditing((current) => !current);
-    const router = useRouter();
+export const ChapterTitleForm = ({ initialData, courseId, chapterId }: ChapterTitleFormProps) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const toggleEditing = useCallback(() => setIsEditing(prev => !prev), []);
+    const queryClient = useQueryClient();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: initialData
+        defaultValues: {
+            title: initialData.title || '',
+        },
     });
 
-    const {isSubmitting, isValid} = form.formState;
+    const { isSubmitting, isValid } = form.formState;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        try{
+        try {
             await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, values);
-            toast.success("Дані оновлено успішно.");
+            await queryClient.invalidateQueries({ queryKey: ["chapter", courseId, chapterId] });
             toggleEditing();
-            router.refresh();
-        } catch (e) {
-            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-            console.error(e);
+            toast.success("Дані оновлено успішно.");
+            form.reset(values);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
+            console.error(error);
         }
-    }
+    };
 
     return(
-        <div className="mt-6 border border-gray-900/25 bg-slate-100 rounded-md p-4">
-            <div className="font-medium flex items-center justify-between">
+        <div className="mt-6 bg-slate-50 rounded-lg shadow-lg border border-gray-200 p-6">
+            <div className="font-semibold text-lg flex items-center justify-between mb-4">
                 Назва розділу
-                <Button onClick={toggleEditing} variant="ghost">
-                    {isEditing ? (
-                        <>Скасувати</>
-                    ) : (
+                <Button
+                    onClick={toggleEditing}
+                    variant="ghost"
+                    className="flex items-center transition-colors"
+                    aria-label={isEditing ? "Скасувати редагування" : "Змінити назву курсу"}
+                >
+                    {isEditing ? "Скасувати" : (
                         <>
-                            <PencilIcon className="h-4 w-4 mr-1"/>
+                            <PencilIcon className="h-4 w-4 mr-2" />
                             Змінити назву
                         </>
                     )}
                 </Button>
             </div>
-            {!isEditing && (
-                <p className="text-sm mt-2">
-                    {initialData.title}
-                </p>
-            )}
-            {isEditing && (
+
+            {!isEditing ? (
+                <p className="text-md text-gray-700">{initialData.title}</p>
+            ) : (
                 <Form {...form}>
-                    <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-4 mt-4"
-                    >
-                        <FormField
-                            control={form.control}
-                            name="title"
-                            render={({field}) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input
-                                            disabled={isSubmitting}
-                                            placeholder="Наприклад, 'Вступ до курсу'"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="flex items-center gap-x-2">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
+                        <FormField control={form.control} name="title" render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <Input
+                                        disabled={isSubmitting}
+                                        placeholder="Наприклад, 'Вступ до курсу"
+                                        className="w-full p-3 rounded-lg border border-gray-400"
+                                        aria-label="Поле введення назви: Наприклад, 'Вступ до курсу'"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage className="text-pink-600" />
+                            </FormItem>
+                        )} />
+                        <div className="flex items-center gap-x-4">
                             <Button
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
+                                className="w-full transition-colors rounded-lg"
+                                aria-label="Зберегти зміни"
                             >
                                 Зберегти зміни
                             </Button>
                         </div>
+                        {isSubmitting && <p className="text-sm text-gray-500">Зачекайте, відправка даних...</p>}
                     </form>
                 </Form>
             )}
         </div>
-    )
-}
+    );
+};
 
-export default TitleForm;
+export default ChapterTitleForm;
