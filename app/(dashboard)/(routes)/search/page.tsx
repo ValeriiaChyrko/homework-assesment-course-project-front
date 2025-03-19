@@ -3,71 +3,50 @@
 import { Categories } from "@/app/(dashboard)/(routes)/search/_components/categories";
 import { SearchInput } from "@/components/search-input";
 import { CoursesList } from "@/components/couses-list";
-import { useEffect, useState } from "react";
-import axios from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CoursesListSkeleton } from "@/components/course-list-skeleton";
-import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+type CourseWithProgressWithCategory = Course & {
+    category: Category | null;
+    chapters: Chapter[];
+    progress: number | null;
+};
+
+const fetchCategories = async (): Promise<Category[]> => {
+    const response = await axios.get('/api/categories');
+    return response.data.categories;
+};
+
+const fetchCourses = async (title: string | null, categoryId: string | null): Promise<CourseWithProgressWithCategory[]> => {
+    const response = await axios.get('/api/courses', {
+        params: {
+            title,
+            categoryId,
+        },
+    });
+    return response.data.courses;
+};
 
 const SearchPage = () => {
     const searchParams = useSearchParams();
     const title = searchParams.get("title");
     const categoryId = searchParams.get("categoryId");
 
-    const [categories, setCategories] = useState<Category[] | []>([]);
-    const [courses, setCourses] = useState([]);
-    const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
-    const [isCoursesLoading, setIsCoursesLoading] = useState(true);
+    const { data: categoriesData, isLoading: isCategoriesLoading, isError: isCategoriesError } = useQuery<Category[], Error>({
+        queryKey: ["categories"],
+        queryFn: fetchCategories,
+    });
 
-    useEffect(() => {
-        const getCategories = async () => {
-            try {
-                const response = await axios.get('/api/categories');
-                setCategories(response.data.categories || []);
-            } catch (error) {
-                console.error("Error fetching categories:", error);
-                toast.error("Не вдалося завантажити категорії. Спробуйте ще раз.");
-                setCategories([]);
-            } finally {
-                setIsCategoriesLoading(false);
-            }
-        };
+    const { data: coursesData, isLoading: isCoursesLoading, isError: isCoursesError } = useQuery<CourseWithProgressWithCategory[], Error>({
+        queryKey: ["courses", title, categoryId],
+        queryFn: () => fetchCourses(title, categoryId),
+    });
 
-        getCategories();
-    }, []);
-
-    useEffect(() => {
-        const controller = new AbortController();
-        const { signal } = controller;
-
-        const getCourses = async () => {
-            try {
-                const response = await axios.get('/api/courses', {
-                    params: {
-                        title,
-                        categoryId,
-                    },
-                    signal
-                });
-                setCourses(response.data.courses || []);
-            } catch (error) {
-                if (axios.isCancel(error)) {
-                    console.log("Request canceled:", error.message);
-                } else {
-                    console.error("Error fetching courses:", error);
-                    toast.error("Не вдалося завантажити курси. Спробуйте ще раз.");
-                    setCourses([]);
-                }
-            } finally {
-                setIsCoursesLoading(false);
-            }
-        };
-
-        getCourses();
-
-        return () => controller.abort();
-    }, [title, categoryId]);
+    const categories = categoriesData  || [];
+    const courses:CourseWithProgressWithCategory[] = coursesData || [];
 
     return (
         <>
@@ -77,12 +56,16 @@ const SearchPage = () => {
             <div className="p-6 space-y-6">
                 {isCategoriesLoading ? (
                     <Skeleton className="w-full h-full" />
+                ) : isCategoriesError ? (
+                    <p>Error fetching categories.</p>
                 ) : (
                     <Categories items={categories} />
                 )}
 
                 {isCoursesLoading ? (
                     <CoursesListSkeleton />
+                ) : isCoursesError ? (
+                    <p>Error fetching courses.</p>
                 ) : (
                     <CoursesList items={courses} displayProgress={false} />
                 )}
