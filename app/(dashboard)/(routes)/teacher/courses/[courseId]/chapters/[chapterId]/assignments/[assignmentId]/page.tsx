@@ -5,8 +5,7 @@ import {
     CalendarClock,
     Github,
     Presentation,
-    ArrowLeft,
-    FolderCodeIcon
+    ArrowLeft
 } from "lucide-react";
 import { Banner } from "@/components/banner";
 import { IconBadge } from "@/components/icon-badge";
@@ -23,11 +22,6 @@ import Link from "next/link";
 import {
     EditAssignmentSkeleton
 } from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/chapters/[chapterId]/assignments/[assignmentId]/_components/edit-assignment-skeleton";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card } from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
-import {Slider} from "@/components/ui/slider";
-import {FormDescription} from "@/components/ui/form";
 
 const fetchAssignment = async (courseId:string, chapterId:string, assignmentId:string) => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`);

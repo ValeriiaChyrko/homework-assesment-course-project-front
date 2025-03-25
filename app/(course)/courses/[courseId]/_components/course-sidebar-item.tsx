@@ -44,7 +44,7 @@ export const CourseSidebarItem = ({
                 <Icon
                     size={22}
                     className={cn(
-                        "text-slate-500",
+                        "text-slate-500 mr-2",
                         isActive && "text-slate-700",
                         isCompleted && "text-emerald-700",
                     )}

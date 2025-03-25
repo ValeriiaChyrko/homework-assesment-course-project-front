@@ -5,7 +5,7 @@ import { IconBadge } from "@/components/icon-badge";
 
 interface AttemptBlockProps {
     assignment: Assignment;
-    attempt: AttemptProgress;
+    attempt: Attempt;
 }
 
 const getBadgeVariant = (percentage: number) => {
@@ -48,7 +48,7 @@ const AttemptBlock = ({
     return (
         <div className="flex flex-col items-start justify-between">
             <div className="flex items-center gap-2">
-                <h2 className="text-md text-slate-700">
+                <h2 className="text-md text-slate-900">
                     Спроба № {attempt.position}
                 </h2>
                 <Badge
@@ -67,7 +67,7 @@ const AttemptBlock = ({
                     return (
                         <div
                             key={title}
-                            className="flex items-start gap-3 mb-3 p-3 bg-gray-50/50 rounded-md"
+                            className="flex items-start gap-3 mb-3 p-3 bg-gray-50/50 rounded-md space-x-2"
                         >
                             <IconBadge icon={isPassed ? SquareCheckBig : SquareX} variant={isPassed ? "success" : "warning"} />
 
@@ -79,18 +79,18 @@ const AttemptBlock = ({
                                     </Badge>
                                 </div>
 
-                                <div className="flex flex-wrap sm:flex-row sm:space-x-4 flex-col space-y-1 sm:space-y-0 mt-1 text-sm">
+                                <div className="flex flex-wrap sm:!flex-row sm:space-x-4 flex-col space-y-1 sm:!space-y-0 mt-2 text-sm">
                                     <div className="flex items-center gap-1">
-                                        <span className="text-slate-500">Бал:</span>
-                                        <span className="text-slate-800 font-semibold">{score}</span>
+                                        <span className="text-slate-700">Бал:</span>
+                                        <span className="text-slate-900 font-semibold">{score}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="text-slate-500">Максимальний бал:</span>
-                                        <span className="text-slate-800 font-semibold">{maxScore}</span>
+                                        <span className="text-slate-700">Максимальний бал:</span>
+                                        <span className="text-slate-900 font-semibold">{maxScore}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="text-slate-500">Мінімальний бал:</span>
-                                        <span className="text-slate-800 font-semibold">{minScore}</span>
+                                        <span className="text-slate-700">Мінімальний бал:</span>
+                                        <span className="text-slate-900 font-semibold">{minScore}</span>
                                     </div>
                                 </div>
                             </div>

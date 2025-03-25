@@ -51,7 +51,7 @@ export const AssignmentActions = ({
         } finally {
             setIsLoading(false);
         }
-    }, [disabled, isLoading, isPublished, courseId, chapterId, assignmentId, router]);
+    }, [disabled, isLoading, isPublished, courseId, chapterId, assignmentId, queryClient]);
 
     const onDelete = useCallback(async () => {
         if (isLoading) return;

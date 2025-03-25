@@ -40,11 +40,12 @@ export async function GET(
             });
         }
 
-        const course:Course & {
-        category: Category;
-        chapters: Chapter[];
-        progress: number;
-        }= await apiResponse.json();
+        const course: Course & {
+            category: Category;
+            chapters: Chapter & {userProgress: UserChapterProgress | null;}[];
+            progress: number;
+            isEnrolled: boolean;
+        } = await apiResponse.json();
 
         return NextResponse.json({
             course: course,

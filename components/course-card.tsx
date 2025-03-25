@@ -9,8 +9,7 @@ interface CourseCardProps {
     category: string;
     course: Course;
     chaptersLength: number;
-    progress: number | null;
-    displayProgress: boolean;
+    progress?: number | null;
 }
 
 export const CourseCard = ({
@@ -18,7 +17,6 @@ export const CourseCard = ({
                                chaptersLength,
                                progress,
                                category,
-                               displayProgress,
                            }: CourseCardProps) => {
     let chapterText;
     if (chaptersLength % 10 === 1 && chaptersLength % 100 !== 11) {
@@ -47,36 +45,13 @@ export const CourseCard = ({
                 <div>
                     <h3 className="text-xl font-bold">{course.title}</h3>
                     <p className="text-sm text-muted-foreground mt-2">{course.description}</p>
-                    <div className="mt-4 flex items-center gap-x-2">
-                        <IconBadge size="sm" icon={BookOpen} />
-                        <h4 className="text-sm">{chaptersLength} {chapterText}</h4>
-                    </div>
                 </div>
             </CardHeader>
-            <CardContent className="pb-2">
-                {displayProgress && (
-                    <div>
-                        <div className="flex items-center justify-between mb-4">
-                            <span className="text-sm font-medium">Прогрес</span>
-                            <span className="text-sm font-medium">{progress}%</span>
-                        </div>
-                        <div className="flex items-center justify-between mb-4">
-                            <div
-                                role="progressbar"
-                                aria-valuenow={progress ?? 0}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                                aria-label="Прогрес"
-                                className="relative w-full overflow-hidden rounded-full h-2 bg-emerald-100"
-                            >
-                                <div
-                                    style={{ width: `${progress ?? 0}%` }}
-                                    className="bg-emerald-500 h-full"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
+            <CardContent className="pb-4">
+                <div className="flex items-center gap-x-2">
+                    <IconBadge size="sm" icon={BookOpen} />
+                    <h4 className="text-sm">{chaptersLength} {chapterText}</h4>
+                </div>
             </CardContent>
             <CardFooter className="pt-2">
                 <Link href={`/courses/${course.id}`} className="block w-full">

@@ -41,7 +41,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     const [isFocused, setIsFocused] = useState(false);
 
     const columnsMemo = useMemo(() => columns, [columns]);
-    const dataMemo = useMemo(() => data, [data]);
+    const dataMemo = useMemo(() => [...data], [data]);
 
     const table = useReactTable({
         data: dataMemo,

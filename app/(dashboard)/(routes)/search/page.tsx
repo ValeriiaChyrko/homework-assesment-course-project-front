@@ -47,6 +47,7 @@ const SearchPage = () => {
 
     const categories = categoriesData  || [];
     const courses:CourseWithProgressWithCategory[] = coursesData || [];
+    const userText = "В даний момент немає курсів, які б відповідали вашому запиту.";
 
     return (
         <>
@@ -67,7 +68,7 @@ const SearchPage = () => {
                 ) : isCoursesError ? (
                     <p>Error fetching courses.</p>
                 ) : (
-                    <CoursesList items={courses} displayProgress={false} />
+                    <CoursesList items={courses}  userText={userText} />
                 )}
             </div>
         </>

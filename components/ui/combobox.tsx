@@ -20,12 +20,20 @@ interface ComboboxProps {
     options: { label: string; value: string }[];
     value?: string;
     onChangeAction: (value: string) => void;
+    size?: "sm" | "md" | "lg";
 }
+
+const sizeClass = {
+    sm: "text-sm px-3 py-1",
+    md: "text-base px-4 py-2",
+    lg: "text-lg px-5 py-3",
+};
 
 export function Combobox({
                              options,
                              value,
-                             onChangeAction
+                             onChangeAction,
+                             size = "md",
                          }: ComboboxProps) {
     const [open, setOpen] = React.useState(false);
     const [search, setSearch] = React.useState("");
@@ -74,17 +82,23 @@ export function Combobox({
                     aria-expanded={open}
                     aria-haspopup="listbox"
                     aria-activedescendant={activeOption !== null ? `option-${activeOption}` : undefined}
-                    className="w-full px-4 rounded-lg text-lg text-gray-700 bg-slate-50 border border-gray-300 focus:ring-2 justify-between"
+                    className={cn(
+                        "w-full rounded-lg text-gray-700 bg-slate-50 border border-gray-300 focus:ring-2 justify-between",
+                        sizeClass[size]
+                    )}
                 >
                     {value ? options.find(option => option.value === value)?.label : "Оберіть опцію..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[350px] p-2 bg-slate-50 border border-gray-400">
+            <PopoverContent className="w-[350px] p-2 mt-2 bg-slate-50 border border-gray-400">
                 <Command>
                     <Input
                         placeholder="Знайти опцію..."
-                        className="pl-9 rounded-full text-lg text-gray-700 bg-slate-50 border border-gray-300 focus:ring-2"
+                        className={cn(
+                            "pl-9 rounded-full text-gray-700 bg-slate-50 border border-gray-300 focus:ring-2",
+                            sizeClass[size]
+                        )}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={handleKeyDown}
@@ -92,7 +106,14 @@ export function Combobox({
                     />
                     <CommandList>
                         {filteredOptions.length === 0 ? (
-                            <CommandEmpty className="py-2 text-lg text-gray-700 text-center italic">Опцію не знайдено</CommandEmpty>
+                            <CommandEmpty
+                                className={cn(
+                                    "py-2 text-lg text-gray-700 text-center italic",
+                                    sizeClass[size]
+                                )}
+                            >
+                                Опцію не знайдено
+                            </CommandEmpty>
                         ) : (
                             <CommandGroup>
                                 {filteredOptions.map((option, index) => (
@@ -104,9 +125,10 @@ export function Combobox({
                                             resetCombobox();
                                         }}
                                         className={cn(
-                                            "text-lg text-gray-700 hover:text-sky-700 hover:bg-sky-100",
+                                            "text-gray-700 hover:text-sky-700 hover:bg-sky-100",
                                             activeOption === index ? "bg-sky-50" : "",
-                                            "transition-colors duration-200"
+                                            "transition-colors duration-200",
+                                            sizeClass[size]
                                         )}
                                         id={`option-${index}`}
                                         aria-selected={activeOption === index}

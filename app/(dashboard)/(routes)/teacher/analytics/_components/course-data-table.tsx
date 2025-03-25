@@ -29,13 +29,22 @@ interface CourseTableProps {
     courses: (Course & {
         chapters: (Chapter & {
             assignments: (Assignment & {
-                attemptProgress: AttemptProgress[];
+                attempts: Attempt[];
             })[];
         })[];
     })[];
 }
 
-const columns: ColumnDef<any>[] = [
+interface FlattenedCourseData {
+    courseTitle: string;
+    chapterTitle: string;
+    assignmentTitle: string;
+    assignment: Assignment & {
+        attempts: Attempt[];
+    };
+}
+
+const columns: ColumnDef<FlattenedCourseData>[] = [
     {
         accessorKey: "courseTitle",
         header: "Назва курсу",

@@ -43,7 +43,7 @@ interface Chapter {
     courseId: UUID;
     muxData?: MuxData;
     assignments: Assignment[];
-    userProgress: UserProgress[];
+    userProgress: UserChapterProgress;
     attachments: Attachment[];
     createdAt: Date;
     updatedAt: Date;
@@ -71,24 +71,24 @@ interface Assignment {
     attemptQualityMaxScore: number;
     attemptQualityMinScore: number;
 
-    attemptProgress: AttemptProgress[];
+    attemptProgress: UserAssignmentProgress;
+    attempts: Attempt[];
 
     chapterId: UUID;
     createdAt: Date;
     updatedAt: Date;
 }
 
-interface AttemptProgress {
+interface Attempt {
     id: UUID;
     userId: UUID;
     assignmentId: UUID;
     position: number;
-    brachName?: string;
+    branchName?: string;
     finalScore: number;
     compilationScore: number;
     qualityScore: number;
     testsScore: number;
-    progressStatus: string;
     isCompleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -101,10 +101,19 @@ interface MuxData {
     chapterId: UUID;
 }
 
-interface UserProgress {
+interface UserChapterProgress {
     id: UUID;
     userId: UUID;
     chapterId: UUID;
+    isCompleted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+interface UserAssignmentProgress {
+    id: UUID;
+    userId: UUID;
+    assignmentId: UUID;
     isCompleted: boolean;
     createdAt: Date;
     updatedAt: Date;

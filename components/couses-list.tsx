@@ -8,12 +8,12 @@ type CourseWithProgressWithCategory = Course & {
 
 interface CoursesListProps {
     items: CourseWithProgressWithCategory[];
-    displayProgress: boolean;
+    userText: string;
 }
 
 export const CoursesList = ({
     items,
-    displayProgress,
+    userText
 }: CoursesListProps) => {
     return (
         <div>
@@ -25,13 +25,12 @@ export const CoursesList = ({
                         chaptersLength={item.chapters.length}
                         progress={item.progress}
                         category={item?.category?.name || "Без категорії"}
-                        displayProgress={displayProgress}
                     />
                 ))}
             </div>
             {items.length === 0 && (
                 <div className="text-center text-sm text-muted-foreground mt-10">
-                    В даний момент немає курсів, які б відповідали вашому запиту.
+                    {userText}
                 </div>
             )}
         </div>

@@ -44,23 +44,7 @@ const formSchema = z.object({
             message: "Некоректний формат URL.",
         })
         .refine(url => /^https:\/\/github\.com\/[^\/]+\/[^\/]+$/.test(url), {
-            message: "URL має бути у форматі 'https://github.com/owner/repository'.",
-        }),
-
-    repositoryOwner: z.string().trim()
-        .min(1, {
-            message: "Необхідно вказати власника GitHub репозиторія.",
-        })
-        .max(64, {
-            message: "URL GitHub репозиторія не повинна перевищувати 64 символів."
-        }),
-
-    repositoryName: z.string().trim()
-        .min(1, {
-            message: "Необхідно вказати назву GitHub репозиторія.",
-        })
-        .max(64, {
-            message: "URL GitHub репозиторія не повинна перевищувати 64 символів."
+            message: "URL має бути у форматі 'https://github.com/owner/repository'.git",
         }),
 });
 
@@ -73,14 +57,13 @@ export const AssignmentGithubRepoUrlForm= ({ initialData, courseId, chapterId, a
         resolver: zodResolver(formSchema),
         defaultValues: {
             repositoryUrl: initialData.repositoryUrl || '',
-            repositoryOwner: initialData.repositoryOwner || '',
-            repositoryName: initialData.repositoryName || '',
         },
     });
 
-    const { isSubmitting } = form.formState;
+    const { isSubmitting, isValid } = form.formState;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        console.log("BUTTON CLICKED");
         try {
             await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`, values);
             await queryClient.invalidateQueries({ queryKey: ["assignment", courseId, chapterId, assignmentId] });
@@ -141,7 +124,7 @@ export const AssignmentGithubRepoUrlForm= ({ initialData, courseId, chapterId, a
             )}
             {isEditing && (
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
                         <FormField control={form.control} name="repositoryUrl" render={({ field }) => (
                             <FormItem>
                                 <FormControl>
@@ -158,7 +141,7 @@ export const AssignmentGithubRepoUrlForm= ({ initialData, courseId, chapterId, a
                         )} />
                         <div className="flex items-center gap-x-4">
                             <Button
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || !isValid}
                                 type="submit"
                                 className="w-full transition-colors rounded-lg"
                                 aria-label="Зберегти зміни"

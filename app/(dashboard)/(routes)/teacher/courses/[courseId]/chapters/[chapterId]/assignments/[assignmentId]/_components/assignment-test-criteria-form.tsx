@@ -57,13 +57,13 @@ const formSchema = z.object({
     attemptQualitySectionEnable: z.boolean().default(false),
 
     attemptCompilationMaxScore: z.number().positive("Число повинно бути більше 0"),
-    attemptCompilationMinScore: z.number().nonnegative("Число повинно бути додатнім."),
+    attemptCompilationMinScore: z.number(),
 
     attemptTestsMaxScore: z.number().positive("Число повинно бути більше 0"),
-    attemptTestsMinScore: z.number().nonnegative("Число повинно бути додатнім."),
+    attemptTestsMinScore: z.number(),
 
     attemptQualityMaxScore: z.number().positive("Число повинно бути більше 0"),
-    attemptQualityMinScore: z.number().nonnegative("Число повинно бути додатнім."),
+    attemptQualityMinScore: z.number(),
 });
 
 export const AssignmentTestCriteriaForm = ({ initialData, courseId, chapterId, assignmentId }: ChapterDescriptionFormProps) => {
@@ -79,7 +79,7 @@ export const AssignmentTestCriteriaForm = ({ initialData, courseId, chapterId, a
         mode: "onChange",
     });
 
-    const { isSubmitting, isValid } = form.formState;
+    const { isSubmitting } = form.formState;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
@@ -95,10 +95,14 @@ export const AssignmentTestCriteriaForm = ({ initialData, courseId, chapterId, a
     };
 
     const [weights, setWeights] = useState({ compilation: 5, tests: 65, quality: 30 });
+    const maxScore = form.watch("maxScore");
+    const attemptCompilationEnabled = form.watch("attemptCompilationSectionEnable");
+    const attemptTestsEnabled = form.watch("attemptTestsSectionEnable");
+    const attemptQualityEnabled = form.watch("attemptQualitySectionEnable");
 
     useEffect(() => {
         recalculateScores();
-    }, [weights, form.watch("maxScore"), form.watch("attemptCompilationSectionEnable"), form.watch("attemptTestsSectionEnable"), form.watch("attemptQualitySectionEnable")]);
+    }, [weights, maxScore, attemptCompilationEnabled, attemptTestsEnabled, attemptQualityEnabled]);
 
     const recalculateScores = () => {
         const maxScore = form.getValues("maxScore");
@@ -503,7 +507,7 @@ export const AssignmentTestCriteriaForm = ({ initialData, courseId, chapterId, a
                         />
                         <div className="flex items-center gap-x-2">
                             <Button
-                                disabled={!isValid || isSubmitting}
+                                disabled={isSubmitting}
                                 type="submit"
                                 className={cn("mt-4")}
                             >

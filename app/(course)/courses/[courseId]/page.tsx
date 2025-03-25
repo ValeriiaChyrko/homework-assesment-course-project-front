@@ -1,40 +1,34 @@
 ﻿"use client"
 
 import {redirect} from "next/navigation";
-import {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import axios from "axios";
 
 const CourseIdPage = ({
-    params
-}: {
-    params: { courseId: string; }
+                          params,
+                      }: {
+    children: React.ReactNode;
+    params: Promise<{ courseId: string }>;
 }) => {
-    const [course, setCourse] = useState<Course & {
-        chapters: Chapter[] | null;
-    } | null>(null);
-    const [courseId, setCourseId] = useState('');
+    const courseId = React.use(params).courseId;
+    const [chapterId, setChapterId] = React.useState<string>('');
 
     useEffect(() => {
-        const getCourseWithProgressAndChapters = async () => {
+        const getCourseFirstChapterId = async () => {
             try {
-                const { courseId } = await params;
-                setCourseId(courseId);
-                const response = await axios.get(`/api/courses/${courseId}/progress`);
-                const data = response.data;
-                setCourse(data.course || null);
+                const response = await axios.get(`/api/courses/${courseId}/chapters/first`);
+                const chapter:Chapter = response.data;
+                setChapterId(chapter.id);
             } catch (error) {
                 console.error("Error fetching courses:", error);
             }
         };
 
-        getCourseWithProgressAndChapters();
-    }, [params]);
+        getCourseFirstChapterId().then();
+    }, [courseId]);
 
-    if (!course) {
-        return <div>Loading...</div>;
-    }
-
-    return redirect(`/courses/${courseId}/chapters/${course.chapters[0].id}`);
+    if (!chapterId) return null;
+    return redirect(`/courses/${courseId}/chapters/${chapterId}`);
 }
 
 export default CourseIdPage;

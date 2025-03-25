@@ -14,7 +14,7 @@ interface AttemptResultsDialogProps {
     courseTitle: string;
     chapterTitle: string;
     assignment: Assignment & {
-        attemptProgress: AttemptProgress[];
+        attempts: Attempt[];
     };
 }
 
@@ -43,7 +43,7 @@ export function AttemptResultsDialog({
                     <div className="container mx-auto overflow-x-auto">
                         <AssignmentAttemptResultsTable
                             columns={courseColumns}
-                            data={assignment.attemptProgress}
+                            data={assignment.attempts}
                         />
                     </div>
                 </div>

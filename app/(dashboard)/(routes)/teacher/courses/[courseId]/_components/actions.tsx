@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useConfettiStore } from "@/hooks/use-confetti-store";
+import {useQueryClient} from "@tanstack/react-query";
 
 interface ActionsProps {
     disabled: boolean;
@@ -22,6 +23,7 @@ export const Actions = ({
                         }: ActionsProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const queryClient = useQueryClient();
     const confetti = useConfettiStore();
 
     const handlePublishToggle = useCallback(async () => {
@@ -31,21 +33,25 @@ export const Actions = ({
             await axios.patch(`/api/courses/${courseId}/${action}`);
             toast.success(`Курс ${isPublished ? 'знято з публікації' : 'опубліковано'}.`);
             if (!isPublished) confetti.onOpen();
-            router.refresh();
+
+            await queryClient.invalidateQueries({ queryKey: ["owned_courses"] });
+            await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
         } catch (error) {
             toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
             console.error(error);
         } finally {
             setIsLoading(false);
         }
-    }, [isPublished, courseId, router, confetti]);
+    }, [isPublished, courseId, confetti, queryClient]);
 
     const handleDelete = useCallback(async () => {
         setIsLoading(true);
         try {
             await axios.delete(`/api/courses/${courseId}`);
             toast.success("Дані видалено успішно.");
-            router.refresh();
+
+            await queryClient.invalidateQueries({ queryKey: ["owned_courses"] });
+            await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
             router.push(`/teacher/courses`);
         } catch (error) {
             toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
@@ -53,7 +59,7 @@ export const Actions = ({
         } finally {
             setIsLoading(false);
         }
-    }, [courseId, router]);
+    }, [courseId, queryClient, router]);
 
     return (
         <div className="flex items-center gap-x-2">

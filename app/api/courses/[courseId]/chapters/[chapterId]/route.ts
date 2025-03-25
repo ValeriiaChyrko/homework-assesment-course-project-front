@@ -1,14 +1,6 @@
 ﻿import { NextResponse } from "next/server";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
-import Mux from "@mux/mux-node";
-
-const mux = new Mux({
-    tokenId: process.env.MUX_TOKEN_ID!,
-    tokenSecret: process.env.MUX_TOKEN_SECRET!
-});
-
-const { video } = mux;
 
 export async function GET(
     req: Request,

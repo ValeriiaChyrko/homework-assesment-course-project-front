@@ -1,12 +1,13 @@
-﻿"use client"
+﻿"use client";
 
-import {Button} from "@/components/ui/button";
-import {CheckCircle, XCircle} from "lucide-react";
-import {useRouter} from "next/navigation";
-import {useConfettiStore} from "@/hooks/use-confetti-store";
-import {useState} from "react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useConfettiStore } from "@/hooks/use-confetti-store";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CourseProgressButtonProps {
     chapterId: string;
@@ -16,40 +17,44 @@ interface CourseProgressButtonProps {
 }
 
 export const CourseProgressButton = ({
-    chapterId,
-    courseId,
-    isCompleted,
-    nextChapterId,
-}: CourseProgressButtonProps) => {
+                                         chapterId,
+                                         courseId,
+                                         isCompleted,
+                                         nextChapterId,
+                                     }: CourseProgressButtonProps) => {
     const router = useRouter();
     const confetti = useConfettiStore();
-    const[isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const queryClient = useQueryClient();
 
     const onClick = async () => {
-      try {
-          setIsLoading(true);
+        try {
+            setIsLoading(true);
 
-          await axios.put(`/api/courses/${courseId}/chapters/${chapterId}/progress`, {
-              isCompleted: !isCompleted,
-          });
+            await axios.put(`/api/courses/${courseId}/chapters/${chapterId}/progress`, {
+                isCompleted: !isCompleted,
+            });
 
-          if (!isCompleted && !nextChapterId) {
-              confetti.onOpen();
-          }
+            await queryClient.invalidateQueries({ queryKey: ["userProgress", courseId, chapterId] });
+            await queryClient.invalidateQueries({ queryKey: ["courseWithProgress", courseId] });
 
-          if (!isCompleted && nextChapterId) {
-              router.push(`/courses/${courseId}/chapters/${nextChapterId}`);
-          }
+            if (!isCompleted && !nextChapterId) {
+                confetti.onOpen();
+            }
 
-          toast.success("Прогрес оновлено успішно.");
-          router.refresh();
-      } catch (e) {
-          toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
-          console.error(e);
-      } finally {
-          setIsLoading(false);
-      }
-    }
+            if (!isCompleted && nextChapterId) {
+                router.push(`/courses/${courseId}/chapters/${nextChapterId}`);
+            }
+
+            toast.success("Прогрес оновлено успішно.");
+            router.refresh();
+        } catch (e) {
+            toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
+            console.error(e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const Icon = isCompleted ? XCircle : CheckCircle;
 
@@ -62,9 +67,7 @@ export const CourseProgressButton = ({
             className="w-full md:w-auto"
         >
             {isCompleted ? "Не завершено" : "Позначити як завершений"}
-            <Icon
-                className="h-4 w-4 ml-2"
-            />
+            <Icon className="h-4 w-4 ml-2" />
         </Button>
-    )
-}
+    );
+};

@@ -46,6 +46,7 @@ export const TitleForm = ({ initialData, courseId }: TitleFormProps) => {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             await axios.patch(`/api/courses/${courseId}`, values);
+            await queryClient.invalidateQueries({ queryKey: ["owned_courses"] });
             await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
             toggleEditing();
             toast.success("Дані оновлено успішно.");

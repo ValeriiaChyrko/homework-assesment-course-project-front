@@ -5,7 +5,7 @@ import {ArrowUpDown} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {format} from "date-fns";
 
-export const courseColumns: ColumnDef<AttemptProgress>[] = [
+export const courseColumns: ColumnDef<Attempt>[] = [
     {
         accessorKey: "userId",
         header: ({column}) => {

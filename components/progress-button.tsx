@@ -10,9 +10,9 @@ const buttonVariants = cva(
         variants: {
             variant: {
                 default: "bg-sky-200/70 text-sky-700 hover:bg-sky-300/80",
-                started: "bg-indigo-200 text-indigo-700 hover:bg-indigo-300",
-                submitted: "bg-emerald-600/40 text-emerald-700 hover:bg-emerald-700/80 hover:text-emerald-900",
-                finished: "bg-purple-200 text-purple-700 hover:bg-purple-300",
+                started: "bg-indigo-200 text-indigo-700 hover:bg-indigo-300 hover:text-indigo-900",
+                submitted: "bg-emerald-600/35 text-emerald-700 hover:bg-emerald-700/80 hover:text-slate-50",
+                finished: "bg-purple-200 text-purple-700 hover:bg-purple-700/80 hover:text-slate-50",
             },
             size: {
                 default: "h-10 px-4 py-2",
@@ -26,13 +26,13 @@ const buttonVariants = cva(
             size: "default",
         },
     }
-)
+);
 
 const buttonTextMap: Record<string, string> = {
-    'default': 'Розпочати',
-    'submitted': 'Завершити',
-    'finished': 'Відновити',
-    'started': 'Подати роботу',
+    'default': 'Розпочати',   // Завдання ще не розпочате
+    'started': 'Подати роботу',  // Завдання розпочате, але не подане
+    'submitted': 'Завершити',  // Робота подана, можна завершити
+    'finished': 'Відновити',   // Завдання завершене, можна розпочати знову
 };
 
 export interface ButtonProps

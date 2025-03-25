@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { LayoutDashboard, Eye, LaptopMinimalCheck, Video, ArrowLeft } from "lucide-react";
+import {LayoutDashboard, Eye, LaptopMinimalCheck, Video, ArrowLeft, File} from "lucide-react";
 import { IconBadge } from "@/components/icon-badge";
 import ChapterTitleForm from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/chapters/[chapterId]/_components/chapter-title-form";
 import ChapterDescriptionForm from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/chapters/[chapterId]/_components/chapter-description-form";
@@ -14,6 +14,8 @@ import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { EditChapterSkeleton } from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/chapters/[chapterId]/_components/edit-chapter-skeleton";
 import Link from "next/link";
+import ChapterAttachmentForm
+    from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/chapters/[chapterId]/_components/chapter-attachment-form";
 
 const fetchChapter = async (courseId: string, chapterId: string): Promise<Chapter> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}`);
@@ -103,6 +105,13 @@ const ChapterIdPage = ({ params }: { params: Promise<{ courseId: string, chapter
                                 <h2 className="text-xl">Завдання для самостійної роботи</h2>
                             </div>
                             <AssignmentsForm initialData={chapter} courseId={courseId} chapterId={chapterId} />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-x-2">
+                                <IconBadge icon={File} />
+                                <h2 className="text-xl">Вкладення та супровідні файли</h2>
+                            </div>
+                            <ChapterAttachmentForm initialData={chapter} courseId={courseId} chapterId={chapterId} />
                         </div>
                     </div>
                 </div>

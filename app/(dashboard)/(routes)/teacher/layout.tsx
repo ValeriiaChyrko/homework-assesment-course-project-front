@@ -3,9 +3,6 @@
 import { redirect } from "next/navigation";
 import React, { useEffect } from "react";
 import axios from "axios";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient();
 
 const TeacherLayout = ({
                            children,
@@ -27,9 +24,9 @@ const TeacherLayout = ({
     }, []);
 
     return (
-        <QueryClientProvider client={queryClient}>
+        <div>
             {children}
-        </QueryClientProvider>
+        </div>
     );
 }
 

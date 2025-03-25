@@ -76,29 +76,34 @@ const ChapterAttachmentForm = ({ initialData, courseId, chapterId }: ChapterAtta
             {!isEditing ? (
                 <div className={cn("text-md text-gray-700 mt-2", !initialData.attachments.length && "italic")}>
                     {!initialData.attachments.length ? "Ще не додано жодних файлів" : (
-                        <div className="space-y-2 mt-4">
-                            {initialData.attachments.map((attachment) => (
-                                <div
-                                    key={attachment.id}
-                                    className="flex items-center p-3 w-full bg-sky-100 border-sky-200 border text-sky-900 rounded-md"
-                                >
-                                    <File className="h-5 w-5 mr-2 flex-shrink-0" />
-                                    <p className="text-sm line-clamp-1">{attachment.name}</p>
-                                    {deletingId === attachment.id ? (
-                                        <div className="flex-shrink-0 ml-4">
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleDelete(attachment.id)}
-                                            className="ml-auto hover:opacity-75 transition"
-                                            aria-label="Видалити вкладення"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
+                        <div>
+                            <div className="space-y-2 mt-4">
+                                {initialData.attachments.map((attachment) => (
+                                    <div
+                                        key={attachment.id}
+                                        className="flex items-center p-3 w-full bg-sky-100 border-sky-200 border text-sky-900 rounded-md"
+                                    >
+                                        <File className="h-5 w-5 mr-2 flex-shrink-0" />
+                                        <p className="text-sm line-clamp-1">{attachment.name}</p>
+                                        {deletingId === attachment.id ? (
+                                            <div className="flex-shrink-0 ml-4">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleDelete(attachment.id)}
+                                                className="ml-auto hover:opacity-75 transition"
+                                                aria-label="Видалити вкладення"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="text-sm text-muted-foreground mt-4">
+                                Ці ресурси відображатимуться тільки в цьому розділі.
+                            </div>
                         </div>
                     )}
                 </div>

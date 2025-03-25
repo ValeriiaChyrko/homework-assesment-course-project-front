@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 type CourseWithUserProgress= Course & {
     chapters: Chapter  & {
         assignments: Assignment & {
-            attemptProgress: UserProgress[] | []
+            attemptProgress: UserChapterProgress[] | []
         }[] | []
     }[] | [];
 };
@@ -45,7 +45,7 @@ export async function GET() {
         const totalAttempts = courses.reduce((courseAcc, course) => {
             return courseAcc + course.chapters.reduce((chapterAcc, chapter) => {
                 return chapterAcc + chapter.assignments.reduce((assignmentAcc, assignment) => {
-                    return assignmentAcc + assignment.attemptProgress.length;
+                    return assignmentAcc + assignment.attempts.length;
                 }, 0);
             }, 0);
         }, 0);

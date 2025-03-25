@@ -1,129 +1,110 @@
 ﻿"use client";
 
 import {Banner} from "@/components/banner";
-import {VideoPlayer} from "./_components/video-player";
 import {CourseEnrollButton} from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/_components/course-enroll-button";
 import Image from "next/image";
 import OppsPageImageSrc from "@/public/opps-page.svg";
 import {Separator} from "@/components/ui/separator";
 import {Preview} from "@/components/editor/preview";
-import {File} from "lucide-react"
+import {File, LaptopMinimalCheck} from "lucide-react"
 import { CourseProgressButton } from "./_components/course-progress-button";
-import AssignmentIdPage from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/(assignmentId)/page";
-import {useEffect, useState} from "react";
 import axios from "axios";
+import ReactPlayer from "react-player";
+import { useQuery } from "@tanstack/react-query";
+import {ChapterSkeleton} from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/_components/chapter-skeleton";
+import React from "react";
+import Link from "next/link";
+
+const fetchChapter = async (courseId: string, chapterId: string): Promise<Chapter> => {
+    const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}`);
+    return response.data;
+};
+
+const fetchUserProgress = async (courseId: string, chapterId: string) : Promise<UserChapterProgress | null> => {
+    const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/progress`);
+    return response.data;
+};
+
+const fetchNextChapter = async (courseId: string, chapterId: string): Promise<Chapter | null> => {
+    const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/next`);
+    return response.data;
+};
+
+const fetchEnrollment = async (courseId: string): Promise<Enrollment | null> => {
+    const response = await axios.get(`/api/courses/${courseId}/enroll`);
+    return response.data;
+};
+
+const fetchCourseAttachments = async (courseId: string): Promise<Attachment[] | null> => {
+    const response = await axios.get(`/api/courses/${courseId}/attachments`);
+    return response.data;
+};
+
+const fetchChapterAttachments = async (courseId: string, chapterId: string): Promise<Attachment[] | null> => {
+    const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/attachments`);
+    return response.data;
+};
+
+const fetchAssignments = async (courseId: string, chapterId: string): Promise<Assignment[] | null> => {
+    const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments`);
+    return response.data;
+};
 
 const ChapterIdPage = ({
-    params
-}: {
-    params: {courseId: string; chapterId: string}
+                           params
+                       }: {
+    params: Promise<{ courseId: string, chapterId: string; }>;
 }) => {
-    const [chapter, setChapter] = useState<Chapter | null>(null);
-    const [nextChapter, setNextChapter] = useState<Chapter | null>(null);
-    const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
-    const [muxData, setMuxData] = useState<MuxData | null>(null);
-    const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
-    const [attachments, setAttachments] = useState<Attachment[] | []>([]);
-    const [assignments, setAssignments] = useState<Assignment[] | []>([]);
-    const [courseId, setCourseId] = useState('');
-    const [chapterId, setChapterId] = useState('');
+    const courseId = React.use(params).courseId;
+    const chapterId = React.use(params).chapterId;
 
-    useEffect(() => {
-        const getChapter = async () => {
-            const {courseId, chapterId} = await params;
-            setChapterId(chapterId);
-            setCourseId(courseId);
+    const { data: chapter, error: chapterError, isLoading: isLoadingChapter } = useQuery({
+        queryKey: ["chapter", courseId, chapterId],
+        queryFn: () => fetchChapter(courseId, chapterId),
+        enabled: !!courseId && !!chapterId,
+    });
 
-            if (!courseId) return;
+    const { data: userProgress } = useQuery({
+        queryKey: ["userProgress", courseId, chapterId],
+        queryFn: () => fetchUserProgress(courseId, chapterId),
+        enabled: !!courseId && !!chapterId,
+    });
 
-            try {
-                const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}`);
-                setChapter(response.data);
-            } catch (error) {
-                console.error("Error fetching chapter:", error);
-            }
-        };
+    const { data: nextChapter } = useQuery({
+        queryKey: ["nextChapter", courseId, chapterId],
+        queryFn: () => fetchNextChapter(courseId, chapterId),
+        enabled: !!courseId && !!chapterId,
+    });
 
-        const getUserProgress = async () => {
-            if (!chapterId) return;
+    const { data: enrollment } = useQuery({
+        queryKey: ["enrollment", courseId],
+        queryFn: () => fetchEnrollment(courseId),
+        enabled: !!courseId,
+    });
 
-            try {
-                const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/progress`);
-                setUserProgress(response.data);
-            } catch (error) {
-                console.error("Error fetching chapter:", error);
-            }
-        };
+    const { data: courseAttachments } = useQuery({
+        queryKey: ["course-attachments", courseId],
+        queryFn: () => fetchCourseAttachments(courseId),
+        enabled: !!courseId && !!chapterId,
+    });
 
-        const getMuxData = async () => {
-            if (!chapterId) return;
+    const { data: chapterAttachments } = useQuery({
+        queryKey: ["attachments", courseId, chapterId],
+        queryFn: () => fetchChapterAttachments(courseId, chapterId),
+        enabled: !!courseId && !!chapterId,
+    });
 
-            try {
-                const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/video`);
-                setMuxData(response.data);
-            } catch (error) {
-                console.error("Error fetching chapter:", error);
-            }
-        };
+    const { data: assignments } = useQuery({
+        queryKey: ["assignments", courseId, chapterId],
+        queryFn: () => fetchAssignments(courseId, chapterId),
+        enabled: !!courseId && !!chapterId,
+    });
 
-        const getNextChapter = async () => {
-            if (!chapter) return;
+    if (isLoadingChapter) return <ChapterSkeleton />;
+    if (chapterError) return <p>Error loading chapter: {chapterError.message}</p>;
 
-            try {
-                const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/next`);
-                setNextChapter(response.data);
-            } catch (error) {
-                console.error("Error fetching chapter:", error);
-            }
-        };
-
-        const getEnrollment = async () => {
-            if (!chapter) return;
-
-            try {
-                const response = await axios.get(`/api/courses/${courseId}/enrollment`);
-                setEnrollment(response.data);
-            } catch (error) {
-                console.error("Error fetching chapter:", error);
-            }
-        };
-
-        const getAttachments = async () => {
-            if (!chapter) return;
-
-            try {
-                const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/attachments`);
-                setAttachments(response.data);
-            } catch (error) {
-                console.error("Error fetching chapter:", error);
-            }
-        };
-
-        const getAssignments = async () => {
-            if (!chapter) return;
-
-            try {
-                const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments`);
-                setAssignments(response.data);
-            } catch (error) {
-                console.error("Error fetching chapter:", error);
-            }
-        };
-
-        getChapter().then();
-        getUserProgress().then();
-        getMuxData().then();
-        getNextChapter().then();
-        getEnrollment().then();
-        getAttachments().then();
-        getAssignments().then();
-    }, []);
-
-    if (!chapter) return <div>Loading...</div>;
-
-    const isLocked = !chapter.isFree;
-    const completeOnEnd = !userProgress?.isCompleted;
-    const hasAttachedVideo = muxData?.playbackId !== undefined;
+    const isLocked = !chapter?.isFree;
+    const hasAttachedVideo = chapter?.videoUrl !== undefined;
 
     return (
         <div>
@@ -160,18 +141,17 @@ const ChapterIdPage = ({
                 <div className="flex flex-col max-w-4xl mx-auto pb-20">
                     <div className="p-4">
                         {hasAttachedVideo && (
-                            <VideoPlayer
-                                title={chapter.title}
-                                courseId={courseId}
-                                chapterId={chapterId}
-                                nextChapterId={nextChapter?.id}
-                                playbackId={muxData.playbackId!}
-                                completeOnEnd={completeOnEnd}
+                            <ReactPlayer
+                                url={chapter.videoUrl}
+                                controls
+                                width="100%"
+                                height="100%"
+                                playing={false}
                             />
                         )}
                     </div>
                     <div className="space-y-4">
-                        <div className="p-4 flex flex-col md:flex-row items-center justify-between">
+                        <div className="p-4 flex flex-col md:!flex-row items-center justify-between">
                             <h2 className="text-2xl font-semibold mb-2">
                                 {chapter.title}
                             </h2>
@@ -192,18 +172,46 @@ const ChapterIdPage = ({
                         <div className="p-4">
                             <Preview value={chapter.description!}/>
                         </div>
-                        {!!attachments.length && (
+                        {enrollment && !!assignments?.length && (
+                            <>
+                                <Separator/>
+                                <div className="px-4 pt-2 space-y-2 mt-4">
+                                    <h3 className="text-lg font-semibold mb-6">Завдання для самостійної роботи</h3>
+                                    {assignments.map((assignment) =>
+                                            assignment.isPublished && (
+                                                <div
+                                                    key={assignment.id}
+                                                    className="pb-2 space-y-2"
+                                                >
+                                                    <Link
+                                                        href={`/courses/${courseId}/chapters/${chapterId}/assignments/${assignment.id}`}
+                                                        aria-label="Виконати завдання"
+                                                        className="flex items-center p-3 w-full bg-slate-100 hover:bg-slate-300 hover:text-gray-900 border border-slate-200 text-slate-700 rounded-md"
+                                                    >
+                                                        <LaptopMinimalCheck className="h-6 w-6 mr-2 flx-shrink-0"/>
+                                                        <p className="text-md line-clamp-1">
+                                                            {assignment.title}
+                                                        </p>
+                                                    </Link>
+                                                </div>
+                                            )
+                                    )}
+                                </div>
+                            </>
+                        )}
+                        {enrollment && !!courseAttachments?.length && (
                             <>
                                 <Separator />
                                 <div className="px-4 pt-2 space-y-2 mt-4">
-                                    {attachments.map((attachment) => (
+                                    <h3 className="text-lg font-semibold mb-6">Вкладення та супровідні файли</h3>
+                                    {courseAttachments.map((attachment) => (
                                         <a
                                             href={attachment.url}
                                             target="_blank"
                                             key={attachment.id}
-                                            className="flex items-center p-3 w-full bg-sky-100 border-sky-200 border text-sky-700 rounded-md"
+                                            className="flex items-center p-3 w-full bg-sky-100 border border-sky-200 hover:bg-sky-200/80 hover:text-sky-900 text-sky-700 rounded-md"
                                         >
-                                            <File className="h-4 w-4 mr-2 flx-shrink-0"/>
+                                            <File className="h-4 w-4 mr-2 flex-shrink-0" />
                                             <p className="text-xs line-clamp-1">
                                                 {attachment.name}
                                             </p>
@@ -212,20 +220,23 @@ const ChapterIdPage = ({
                                 </div>
                             </>
                         )}
-                        {!!assignments.length && (
+                        {enrollment && !!chapterAttachments?.length && (
                             <>
-                                <Separator/>
-                                {assignments.map((assignment) =>
-                                        assignment.isPublished && (
-                                            <div key={assignment.id} className="w-full bg-slate-100 border-slate-200 border rounded-md">
-                                                <AssignmentIdPage
-                                                    courseId={courseId}
-                                                    chapterId={chapterId}
-                                                    assignment={assignment}
-                                                />
-                                            </div>
-                                        )
-                                )}
+                                <div className="px-4 space-y-2">
+                                    {chapterAttachments.map((attachment) => (
+                                        <a
+                                            href={attachment.url}
+                                            target="_blank"
+                                            key={attachment.id}
+                                            className="flex items-center p-3 w-full bg-sky-100 border border-sky-200 hover:bg-sky-200/80 hover:text-sky-900 text-sky-700 rounded-md"
+                                        >
+                                            <File className="h-4 w-4 mr-2 flx-shrink-0"/>
+                                            <p className="text-xs line-clamp-1">
+                                                {attachment.name}
+                                            </p>
+                                        </a>
+                                    ))}
+                                </div>
                             </>
                         )}
                     </div>

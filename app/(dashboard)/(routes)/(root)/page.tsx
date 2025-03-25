@@ -31,6 +31,7 @@ export default function Dashboard() {
 
     const completedCourses: CourseWithProgressWithCategory[] = data?.completedCourses || [];
     const coursesInProgress: CourseWithProgressWithCategory[] = data?.coursesInProgress || [];
+    const userText = "В даний момент ви не розпочали проходження жодного курсу.";
 
     return (
         <div className="p-6 space-y-4">
@@ -55,7 +56,7 @@ export default function Dashboard() {
                             />
                         )}
                     </div>
-                    <CoursesList items={[...coursesInProgress, ...completedCourses]} displayProgress={true} />
+                    <CoursesList items={[...coursesInProgress, ...completedCourses]} userText={userText} />
                 </>
             )}
         </div>

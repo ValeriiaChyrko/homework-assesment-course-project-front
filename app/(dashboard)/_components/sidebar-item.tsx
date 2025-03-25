@@ -49,7 +49,7 @@ export const SidebarItem = ({
             </div>
             <div className={cn(
                     "ml-auto border-2 border-sky-700 h-full flex-none transition-all",
-                    isActive ? "opacity-100 min-h-[25px]" : "opacity-0"
+                    isActive ? "opacity-100 min-h-[45px]" : "opacity-0"
                 )}
             />
         </button>

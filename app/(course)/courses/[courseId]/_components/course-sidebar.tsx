@@ -2,49 +2,30 @@
 
 import CourseSidebarItem from "@/app/(course)/courses/[courseId]/_components/course-sidebar-item";
 import { CourseProgress } from "@/components/course-progress";
-import {useEffect, useState} from "react";
-import axios from "axios";
+import {CourseWithdrawButton} from "@/app/(course)/courses/[courseId]/_components/course-withdraw-button";
 
 interface CourseSidebarProps {
     course: Course & {
         chapters: (Chapter & {
-            userProgress: UserProgress[] | null;
-        })[]
+            userProgress: UserChapterProgress | null;
+        })[],
+        isEnrolled: boolean;
     };
     progressCount: number;
 }
 
 export const CourseSidebar = ({
-    course,
-    progressCount,
-}: CourseSidebarProps) => {
-    const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
-
-    useEffect(() => {
-        const getEnrollment = async () => {
-            try {
-                const response = await axios.get(`/api/courses/${course.id}/enrollment`);
-                setEnrollment(response.data);
-            } catch (error) {
-                console.error("Error fetching courses:", error);
-            }
-        };
-
-        getEnrollment().then();
-    }, [course]);
-
-    if (!course) {
-        return <div>Loading...</div>;
-    }
-
+                                  course,
+                                  progressCount,
+                              }: CourseSidebarProps) => {
     return (
-        <div className="h-full border-r flex flex-col overflow-y-auto shadow-sm">
-            <div className="p-8 flex flex-col border-b">
-                <h1 className="font-semibold">
+        <div className="h-full border-r border-gray-900/25 flex flex-col overflow-y-auto shadow-sm">
+            <div className="flex flex-col border-b border-dashed border-gray-900/25">
+                <h1 className="h-[80px] p-8 font-semibold">
                     {course.title}
                 </h1>
-                {enrollment && (
-                    <div className="mt-10">
+                {progressCount > 0 && (
+                    <div className="my-4 px-6">
                         <CourseProgress
                             variant="success"
                             value={progressCount}
@@ -52,20 +33,24 @@ export const CourseSidebar = ({
                     </div>
                 )}
             </div>
-            <div className="flex flex-col w-full">
+            <div className="flex flex-col w-full flex-grow">
                 {course.chapters.map((chapter) => (
                     <CourseSidebarItem
                         key={chapter.id}
                         id={chapter.id}
                         label={chapter.title}
-                        isCompleted={!!chapter.userProgress?.[0]?.isCompleted}
+                        isCompleted={!!chapter.userProgress?.isCompleted}
                         courseId={course.id}
                         isLocked={!chapter.isFree}
                     />
                 ))}
             </div>
+            {course.isEnrolled && (
+                <div className="mt-auto p-4 flex justify-center">
+                    <CourseWithdrawButton courseId={course.id} />
+                </div>
+            )}
         </div>
     );
-}
-
+};
 export default CourseSidebar;
