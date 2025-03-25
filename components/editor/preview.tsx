@@ -26,7 +26,7 @@ interface PreviewProps {
 }
 
 export const Preview = ({ value, className }: PreviewProps) => {
-    const editor = useEditor({
+    const localEditor = useEditor({
         extensions: [
             StarterKit,
             TaskItem.configure({
@@ -61,7 +61,7 @@ export const Preview = ({ value, className }: PreviewProps) => {
 
     return (
         <div className={cn("w-full caption-bottom mt-2", className)}>
-            <EditorContent editor={editor} />
+            <EditorContent editor={localEditor} />
         </div>
     );
 };

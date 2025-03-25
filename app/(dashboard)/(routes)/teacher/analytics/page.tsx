@@ -1,72 +1,70 @@
-﻿"use client"
+﻿"use client";
 
-import {DataCard} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/data-card";
-import { Chart } from "./_components/chart";
-import {GraduationCap, School} from "lucide-react";
-import {CourseTable} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/course-data-table";
-import {useEffect, useState } from "react";
 import axios from "axios";
+import { DataCard } from "@/app/(dashboard)/(routes)/teacher/analytics/_components/data-card";
+import { GraduationCap, School } from "lucide-react";
+import { CourseTable } from "@/app/(dashboard)/(routes)/teacher/analytics/_components/course-data-table";
+import { useQuery } from "@tanstack/react-query";
+import {Chart} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/chart";
+import {AnalisysSkeleton} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/analisys-skeleton";
 
+const fetchCourseAnalytics = async () => {
+    const response = await axios.get('/api/courses/owned/evaluation');
+    return {
+        courses: response.data.courses,
+        totalAttempts: response.data.totalAttempts,
+    };
+};
+
+const fetchEnrolledCourseAnalytics = async () => {
+    const response = await axios.get('/api/courses/owned/enrollments');
+    return {
+        enrolledCourses: response.data.enrolledCourses,
+        totalStudents: response.data.totalStudents,
+    };
+};
 
 const AnalyticsPage = () => {
-    const [courses, setCourses] = useState([]);
-    const [totalAttempts, setTotalAttempts] = useState(0);
+    const { data: courseAnalytics, isLoading: isLoadingCourses, isError: isErrorCourses } = useQuery({
+        queryKey: ["course_analytics"],
+        queryFn: fetchCourseAnalytics,
+    });
 
-    useEffect(() => {
-        const getCourseAnalytics = async () => {
-            try {
-                const response = await axios.get('/api/courses/evaluation');
-                setCourses(response.data.courses || []);
-                setTotalAttempts(response.data.totalAttempts);
-            } catch (error) {
-                console.error("Error fetching courses:", error);
-                setCourses([]);
-            }
-        };
+    const { data: enrollmentAnalytics, isLoading: isLoadingEnrollments, isError: isErrorEnrollments } = useQuery({
+        queryKey: ["enrollment_analytics"],
+        queryFn: fetchEnrolledCourseAnalytics,
+    });
 
-        getCourseAnalytics().then();
-    }, []);
+    if (isLoadingCourses || isLoadingEnrollments) {
+        return <AnalisysSkeleton/>;
+    }
 
-    const [enrollments, setEnrollments] = useState([]);
-    const [totalStudents, setTotalStudents] = useState(0);
-
-    useEffect(() => {
-        const getEnrolledCourseAnalytics = async () => {
-            try {
-                const response = await axios.get('/api/courses/enrollments');
-                setEnrollments(response.data.enrolledCourses || []);
-                setTotalStudents(response.data.totalStudents);
-            } catch (error) {
-                console.error("Error fetching enrollments:", error);
-                setCourses([]);
-            }
-        };
-
-        getEnrolledCourseAnalytics().then();
-    }, []);
+    if (isErrorCourses || isErrorEnrollments) {
+        return <p>Error fetching data.</p>;
+    }
 
     return (
         <div className="p-6 space-y-8">
             <div className="grid grid-cols-1 gap-4 mb-4">
                 <DataCard
-                    value={totalStudents}
+                    value={enrollmentAnalytics?.totalStudents ?? 0}
                     label="Загальна кількість студентів"
                     icon={GraduationCap}
                 />
             </div>
             <Chart
-                data={enrollments}
+                data={enrollmentAnalytics?.enrolledCourses ?? []}
             />
             <DataCard
-                value={totalAttempts}
+                value={courseAnalytics?.totalAttempts ?? 0}
                 label="Статистика активності студентів"
                 icon={School}
             />
             <CourseTable
-                courses={courses}
+                courses={courseAnalytics?.courses ?? []}
             />
         </div>
-    )
-}
+    );
+};
 
 export default AnalyticsPage;

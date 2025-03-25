@@ -22,11 +22,11 @@ import Code from '@tiptap/extension-code';
 import {useEditorStore} from "@/components/editor/store/use-editor-store";
 
 interface EditorProps {
-    onChange: (value: string) => void;
+    onChangeAction: (value: string) => void;
     value: string;
 }
 
-export const Editor = ({ onChange, value }: EditorProps) => {
+export const Editor = ({ onChangeAction, value }: EditorProps) => {
     const {setEditor} = useEditorStore();
 
     const editor = useEditor({
@@ -38,7 +38,7 @@ export const Editor = ({ onChange, value }: EditorProps) => {
         },
         onUpdate({ editor }) {
             setEditor(editor);
-            onChange(editor.getHTML());
+            onChangeAction(editor.getHTML());
         },
         onSelectionUpdate({editor}){
             setEditor(editor)

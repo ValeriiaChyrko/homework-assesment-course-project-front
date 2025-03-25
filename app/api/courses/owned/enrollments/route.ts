@@ -2,12 +2,23 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type CourseWithUserProgress= Course & {
-    chapters: Chapter  & {
-        assignments: Assignment & {
-            attemptProgress: UserChapterProgress[] | []
-        }[] | []
-    }[] | [];
+type EnrolledWithCourse = Enrollment & {
+    course: Course;
+};
+
+const groupByCourse = (enrollments: EnrolledWithCourse[]) => {
+    const grouped: { [courseTitle: string]: number} = {};
+
+    enrollments.forEach((enrollment) => {
+        const courseTitle = enrollment.course.title;
+
+        if (!grouped[courseTitle]) {
+            grouped[courseTitle] = 0;
+        }
+        grouped[courseTitle] += 1;
+    });
+
+    return grouped;
 };
 
 export async function GET() {
@@ -19,13 +30,13 @@ export async function GET() {
         if (!token || !userId) {
             console.error("GET_COURSES: No token or userId found");
             return NextResponse.json({
-                courses: []
+                enrolledCourses: [],
+                totalStudents: 0
             });
         }
 
         const queryParams = new URLSearchParams({userId});
-
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/evaluation?${queryParams.toString()}`, {
+        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/enrollments?${queryParams.toString()}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
@@ -41,25 +52,25 @@ export async function GET() {
             });
         }
 
-        const courses: CourseWithUserProgress[] = await apiResponse.json();
-        const totalAttempts = courses.reduce((courseAcc, course) => {
-            return courseAcc + course.chapters.reduce((chapterAcc, chapter) => {
-                return chapterAcc + chapter.assignments.reduce((assignmentAcc, assignment) => {
-                    return assignmentAcc + assignment.attempts.length;
-                }, 0);
-            }, 0);
-        }, 0);
+        const enrollments = await apiResponse.json();
+        const groupedStudents = groupByCourse(enrollments);
+        const enrolledCourses = Object.entries(groupedStudents).map(([courseTitle, total]) => ({
+            name: courseTitle,
+            total: total,
+        }));
 
-        return {
-            courses,
-            totalAttempts
-        };
+        const totalStudents = enrollments.length;
+
+        return NextResponse.json({
+            enrolledCourses,
+            totalStudents
+        });
 
     } catch (e) {
         console.error("GET_DASHBOARD_COURSES", e);
         return NextResponse.json({
-            courses: [],
-            totalAttempts: 0
+            enrolledCourses: [],
+            totalStudents: 0
         });
     }
 }

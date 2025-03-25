@@ -14,7 +14,7 @@ export const Chart = ({
     data
 }: ChartProps) => {
     return (
-        <Card className={"pt-4"}>
+        <Card className="pt-4 border border-gray-200">
             <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={data}>
                     <XAxis

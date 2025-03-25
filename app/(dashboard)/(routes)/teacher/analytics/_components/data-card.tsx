@@ -12,10 +12,10 @@ export const DataCard = ({
     icon: Icon,
 }: DataCardProps) => {
     return (
-        <Card className="rounded-lg p-6 hover:shadow-2xl transition-shadow duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-4">
-                <CardTitle className="text-sm font-semibold text-gray-700 flex items-center space-x-2">
-                    <Icon className="text-xl" />
+        <Card className="border border-gray-200 rounded-xl p-4 bg-white block">
+        <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-gray-700 flex items-center space-x-4">
+                    <Icon className="h-8 w-8 opacity-90 text-gray-700/80" />
                     <span>{label}</span>
                 </CardTitle>
             </CardHeader>
