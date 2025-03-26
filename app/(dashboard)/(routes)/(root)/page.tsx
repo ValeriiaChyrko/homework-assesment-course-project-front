@@ -6,6 +6,7 @@ import { InfoCard } from "./_components/info-card";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { CoursesListSkeleton } from "@/components/course-list-skeleton";
+import {ErrorPage} from "@/components/opps-page";
 
 type CourseWithProgressWithCategory = Course & {
     category: Category | null;
@@ -38,7 +39,7 @@ export default function Dashboard() {
             {isLoading ? (
                 <CoursesListSkeleton />
             ) : isError ? (
-                <p>Error fetching courses.</p>
+                <ErrorPage/>
             ) : (
                 <>
                     <div className={`grid gap-4 ${completedCourses.length > 0 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>

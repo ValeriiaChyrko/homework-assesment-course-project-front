@@ -7,6 +7,7 @@ import { CourseTable } from "@/app/(dashboard)/(routes)/teacher/analytics/_compo
 import { useQuery } from "@tanstack/react-query";
 import {Chart} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/chart";
 import {AnalisysSkeleton} from "@/app/(dashboard)/(routes)/teacher/analytics/_components/analisys-skeleton";
+import {ErrorPage} from "@/components/opps-page";
 
 const fetchCourseAnalytics = async () => {
     const response = await axios.get('/api/courses/owned/evaluation');
@@ -40,7 +41,7 @@ const AnalyticsPage = () => {
     }
 
     if (isErrorCourses || isErrorEnrollments) {
-        return <p>Error fetching data.</p>;
+        return <ErrorPage/>;
     }
 
     return (

@@ -16,9 +16,7 @@ export async function GET(req: Request) {
 
         if (!token || !userId) {
             console.error("GET_COURSES: No token or userId found");
-            return {
-                courses: [],
-            };
+            return new NextResponse("Internal Server Error", { status: 401 });
         }
 
         const url = new URL(req.url);
@@ -42,9 +40,7 @@ export async function GET(req: Request) {
 
         if (!apiResponse.ok) {
             console.error("GET_COURSES: Failed to fetch courses", apiResponse.status);
-            return NextResponse.json({
-                courses: [],
-            });
+            return new NextResponse("Internal Server Error", { status: apiResponse.status });
         }
 
         const responseData = await apiResponse.json();
@@ -74,9 +70,7 @@ export async function GET(req: Request) {
         return response;
     } catch (e) {
         console.error("GET_DASHBOARD_COURSES", e);
-        return NextResponse.json({
-            courses: []
-        });
+        return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
 

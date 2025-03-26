@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import {ChapterSkeleton} from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/_components/chapter-skeleton";
 import React from "react";
 import Link from "next/link";
+import {ErrorPage} from "@/components/opps-page";
 
 const fetchChapter = async (courseId: string, chapterId: string): Promise<Chapter> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}`);
@@ -101,7 +102,7 @@ const ChapterIdPage = ({
     });
 
     if (isLoadingChapter) return <ChapterSkeleton />;
-    if (chapterError) return <p>Error loading chapter: {chapterError.message}</p>;
+    if (chapterError) return <ErrorPage/>;
 
     const isLocked = !chapter?.isFree;
     const hasAttachedVideo = chapter?.videoUrl !== undefined;

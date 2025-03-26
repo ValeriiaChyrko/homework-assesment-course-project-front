@@ -22,7 +22,7 @@ export const NavbarRoutes = () => {
         const checkUserRole = async () => {
             try {
                 const response = await axios.get('/api/users');
-                setIsTeacher(response.data);
+                setIsTeacher(response.data.isTeacher);
             } catch (error) {
                 console.error("Error fetching user role:", error);
                 setIsTeacher(false);

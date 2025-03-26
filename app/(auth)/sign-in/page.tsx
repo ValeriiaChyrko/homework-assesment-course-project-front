@@ -4,15 +4,12 @@ import { redirect } from "next/navigation";
 import Login from "@/app/(auth)/_components/login";
 
 const signingErrors: Record<string | "default", string> = {
-// ...
-}
+    // ...
+};
 
 interface SignInPageProp {
-    params: object
-    searchParams: {
-        callbackUrl: string
-        error: string
-    }
+    params: Promise<{ [key: string]: string }>;
+    searchParams: Promise<{ callbackUrl: string; error: string }>;
 }
 
 export default async function Signin({ searchParams }: SignInPageProp) {
@@ -25,9 +22,11 @@ export default async function Signin({ searchParams }: SignInPageProp) {
 
     return (
         <div>
-            {error && <div>
-                {signingErrors[error.toLowerCase()]}
-            </div>}
+            {error && (
+                <div>
+                    {signingErrors[error.toLowerCase()]}
+                </div>
+            )}
             <Login />
         </div>
     );

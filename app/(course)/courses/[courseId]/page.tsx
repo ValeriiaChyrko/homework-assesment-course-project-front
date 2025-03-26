@@ -7,7 +7,6 @@ import axios from "axios";
 const CourseIdPage = ({
                           params,
                       }: {
-    children: React.ReactNode;
     params: Promise<{ courseId: string }>;
 }) => {
     const courseId = React.use(params).courseId;

@@ -37,10 +37,7 @@ export async function GET() {
 
         if (!apiResponse.ok) {
             console.error("GET_COURSES: Failed to fetch courses", apiResponse.status);
-            return NextResponse.json({
-                completedCourses: [],
-                coursesInProgress: []
-            });
+            return new NextResponse("Internal Server Error", { status: apiResponse.status });
         }
 
         const responseData = await apiResponse.json();
@@ -75,10 +72,7 @@ export async function GET() {
         });
     } catch (e) {
         console.error("GET_DASHBOARD_COURSES", e);
-        return NextResponse.json({
-            completedCourses: [],
-            coursesInProgress: []
-        });
+        return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
 

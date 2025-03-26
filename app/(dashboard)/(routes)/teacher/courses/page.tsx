@@ -5,6 +5,7 @@ import { DataTableSkeleton } from "@/app/(dashboard)/(routes)/teacher/courses/_c
 import { columns } from "./_components/columns";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import {ErrorPage} from "@/components/opps-page";
 
 const fetchCourses = async () => {
     const response = await axios.get("/api/courses/owned");
@@ -28,7 +29,7 @@ const CoursesPage = () => {
     }
 
     if (isError) {
-        return <p>Error fetching courses.</p>;
+        return <ErrorPage/>;
     }
 
     return (

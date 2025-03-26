@@ -1,6 +1,11 @@
 ﻿import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { jwtDecode } from "jwt-decode";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+
+interface AccessTokenData {
+    groups: string[];
+}
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -11,18 +16,13 @@ export async function GET() {
         return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}/roles/teacher`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": `Bearer ${token}`
-        }
+    const decodedToken:AccessTokenData = jwtDecode(token);
+    const groups = decodedToken.groups || [];
+
+    const isTeacher = groups.includes("Teachers");
+
+    return new Response(JSON.stringify({ isTeacher }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
     });
-
-    if (!apiResponse.ok) {
-        return new NextResponse("Internal Server Error", { status: apiResponse.status });
-    }
-
-    const isTeacher = await apiResponse.json();
-    return NextResponse.json(isTeacher);
 }

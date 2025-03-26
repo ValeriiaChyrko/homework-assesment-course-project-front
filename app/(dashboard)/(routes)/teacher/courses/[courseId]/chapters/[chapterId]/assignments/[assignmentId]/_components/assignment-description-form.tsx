@@ -105,7 +105,9 @@ export const AssignmentDescriptionForm= ({ initialData, courseId, chapterId, ass
                                 <FormItem>
                                     <FormControl>
                                         <Editor
-                                            {...field}
+                                            onChangeAction={function (value: string): void {
+                                                form.setValue("description", value);
+                                            }} {...field}
                                         />
                                     </FormControl>
                                     <FormMessage className="text-pink-600" />

@@ -104,7 +104,9 @@ export const DescriptionForm = ({ initialData, courseId, chapterId }: ChapterDes
                                 <FormItem>
                                     <FormControl>
                                         <Editor
-                                            {...field}
+                                            onChangeAction={function (value: string): void {
+                                                form.setValue("description", value);
+                                            }} {...field}
                                         />
                                     </FormControl>
                                     <FormMessage className="text-pink-600" />
