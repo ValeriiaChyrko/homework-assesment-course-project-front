@@ -103,14 +103,16 @@ const AssignmentInformation = ({
                                         value: branch,
                                     })) : []}
                                 />
-                                <Button
-                                    onClick={() => refetch()}
-                                    disabled={isFetching}
-                                    variant="ghost"
-                                    className="px-1"
-                                >
-                                    <RefreshCcw className="h-4 w-4" />
-                                </Button>
+                                {!isFetching && !isLoading && (
+                                        <Button
+                                            onClick={() => refetch()}
+                                            variant="ghost"
+                                            disabled={isFetching || isLoading}
+                                            className="px-1 justify-self-start"
+                                        >
+                                            <RefreshCcw className="h-4 w-4" />
+                                        </Button>
+                                )}
                             </div>
                         }
                     />

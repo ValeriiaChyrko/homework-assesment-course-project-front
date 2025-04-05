@@ -29,7 +29,7 @@ export async function POST(
 
         const decodedToken: AccessTokenData = jwtDecode(token);
 
-        const queryParams = new URLSearchParams({userId});
+        const queryParams = new URLSearchParams();
         queryParams.append("RepoTitle", assignment.repositoryName);
         queryParams.append("OwnerGitHubUsername", assignment.repositoryOwner);
         queryParams.append("AuthorGitHubUsername", decodedToken.login);

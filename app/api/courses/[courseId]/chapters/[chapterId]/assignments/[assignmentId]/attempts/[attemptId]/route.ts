@@ -39,8 +39,8 @@ export async function PATCH(
             return new NextResponse("Internal Server Error", { status: apiResponse.status });
         }
 
-        const createdAttempt:Attempt = await apiResponse.json();
-        return NextResponse.json(createdAttempt);
+        const updatedUttempt:Attempt = await apiResponse.json();
+        return NextResponse.json(updatedUttempt);
     } catch (e) {
         console.error("[ASSIGNMENTS]", e);
         return new NextResponse("Internal Server Error", { status: 500 });

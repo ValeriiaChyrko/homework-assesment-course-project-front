@@ -4,18 +4,21 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {IconBadge} from "@/components/icon-badge";
 import {BookOpen} from "lucide-react";
+import {CourseProgress} from "@/components/course-progress";
 
 interface CourseCardProps {
     category: string;
     course: Course;
     chaptersLength: number;
-    progress?: number | null;
+    progress: number;
+    showProgress?: boolean;
 }
 
 export const CourseCard = ({
                                course,
                                chaptersLength,
                                progress,
+                               showProgress,
                                category,
                            }: CourseCardProps) => {
     let chapterText;
@@ -47,11 +50,19 @@ export const CourseCard = ({
                     <p className="text-sm text-muted-foreground mt-2">{course.description}</p>
                 </div>
             </CardHeader>
-            <CardContent className="pb-4">
+            <CardContent className="pb-2">
                 <div className="flex items-center gap-x-2">
                     <IconBadge size="sm" icon={BookOpen} />
                     <h4 className="text-sm">{chaptersLength} {chapterText}</h4>
                 </div>
+                {showProgress && progress > 0 && (
+                    <div className="mt-6">
+                        <CourseProgress
+                            variant="success"
+                            value={progress}
+                        />
+                    </div>
+                )}
             </CardContent>
             <CardFooter className="pt-2">
                 <Link href={`/courses/${course.id}`} className="block w-full">

@@ -13,7 +13,7 @@ import { ErrorPage } from "@/components/opps-page";
 type CourseWithProgressWithCategory = Course & {
     category: Category | null;
     chapters: Chapter[];
-    progress: number | null;
+    progress: number;
 };
 
 const fetchCategories = async (): Promise<Category[]> => {
@@ -62,7 +62,7 @@ const SearchPage = () => {
                         {isCoursesLoading ? (
                             <CoursesListSkeleton />
                         ) : (
-                            <CoursesList items={courses} userText={userText} />
+                            <CoursesList items={courses} userText={userText} showProgress={false}/>
                         )}
                     </div>
                 </>

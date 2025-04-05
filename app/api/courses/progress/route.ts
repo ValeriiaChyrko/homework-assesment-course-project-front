@@ -5,112 +5,88 @@ import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 type CourseWithProgressWithCategory = Course & {
     category: Category | null;
     chapters: Chapter[];
-    progress: number | null;
+    progress: number;
 };
 
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
 
-        if (!token || !userId) {
-            console.error("GET_COURSES: No token or userId found");
-            return {
-                completedCourses: [],
-                coursesInProgress: []
-            };
+        if (!token) {
+            console.warn("DASHBOARD_COURSES: No access token");
+            return NextResponse.json(
+                { completedCourses: [], coursesInProgress: [] },
+                { status: 401 }
+            );
         }
 
-        const queryParams = new URLSearchParams();
-        queryParams.append("Include", "category");
-        queryParams.append("Include", "progress");
-        queryParams.append("IsPublished", "true");
+        const queryParams = new URLSearchParams([
+            ["Include", "category"],
+            ["Include", "chapters"],
+            ["Include", "progress"],
+            ["FilterBy", "student"],
+            ["IsPublished", "true"]
+        ]);
 
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${userId}/users?${queryParams.toString()}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
-        });
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/courses?${queryParams}`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
 
-        if (!apiResponse.ok) {
-            console.error("GET_COURSES: Failed to fetch courses", apiResponse.status);
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("DASHBOARD_COURSES: Fetch failed", response.status, errorText);
+
+            return NextResponse.json(
+                { completedCourses: [], coursesInProgress: [] },
+                { status: response.status }
+            );
         }
 
-        const responseData = await apiResponse.json();
+        const {
+            items,
+            totalCount,
+            page,
+            pageSize,
+            hasNextPage,
+            hasPreviousPage
+        } = await response.json();
 
-        const courses: CourseWithProgressWithCategory[] = responseData.items.map((item: CourseWithProgressWithCategory) => ({
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            imageUrl: item.imageUrl,
-            isPublished: item.isPublished,
-            category: item.category || "Без категорії",
-            chapters: item.chapters || [],
-            progress: item.progress || 0,
-            userId: item.userId,
+        const courses: CourseWithProgressWithCategory[] = items.map((item:CourseWithProgressWithCategory) => ({
+            ...item,
+            category: item.category ?? { name: "Без категорії" },
+            chapters: item.chapters ?? [],
+            progress: item.progress ?? 0
         }));
 
-        const completedCourses = courses.filter(course => course.progress === 100);
-        const coursesInProgress = courses.filter(course => course.progress! < 100);
+        const completedCourses = courses
+            .filter(c => c.progress === 100)
+            .sort((a, b) => b.progress! - a.progress!);
 
-        completedCourses.sort((a, b) => b.progress! - a.progress!);
-
-        coursesInProgress.sort((a, b) => b.progress! - a.progress!);
+        const coursesInProgress = courses
+            .filter(c => c.progress! < 100)
+            .sort((a, b) => b.progress! - a.progress!);
 
         return NextResponse.json({
             completedCourses,
             coursesInProgress,
-            totalCount: responseData.totalCount,
-            page: responseData.page,
-            pageSize: responseData.pageSize,
-            hasPreviousPage: responseData.hasPreviousPage,
-            hasNextPage: responseData.hasNextPage,
+            totalCount,
+            page,
+            pageSize,
+            hasPreviousPage,
+            hasNextPage
         });
-    } catch (e) {
-        console.error("GET_DASHBOARD_COURSES", e);
-        return new NextResponse("Internal Server Error", { status: 500 });
-    }
-}
-
-export async function POST(req: Request) {
-    try {
-        const session = await getServerSession(authOptions);
-        const token = session?.accessToken;
-        const userId = session?.user?.id;
-
-        const { title } = await req.json();
-
-        if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
-            return {
-                course: null
-            };
-        }
-
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                title,
-                userId
-            })
-        });
-
-        if (!apiResponse.ok) {
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        const course = await apiResponse.json();
-        return NextResponse.json(course);
-    } catch (e) {
-        console.error("[COURSES]", e);
-        return new NextResponse("Internal Server Error", { status: 500 });
+    } catch (error) {
+        console.error("DASHBOARD_COURSES: Unexpected error", error);
+        return NextResponse.json(
+            { completedCourses: [], coursesInProgress: [] },
+            { status: 500 }
+        );
     }
 }

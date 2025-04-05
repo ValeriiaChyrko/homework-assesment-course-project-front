@@ -20,7 +20,7 @@ export async function GET(
             };
         }
 
-        const queryParams = new URLSearchParams({userId});
+        const queryParams = new URLSearchParams();
         const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts?${queryParams.toString()}`, {
             method: "GET",
             headers: {

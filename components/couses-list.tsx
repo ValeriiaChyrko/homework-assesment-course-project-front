@@ -3,17 +3,19 @@
 type CourseWithProgressWithCategory = Course & {
     category: Category | null;
     chapters: Chapter[];
-    progress: number | null;
+    progress: number;
 };
 
 interface CoursesListProps {
     items: CourseWithProgressWithCategory[];
     userText: string;
+    showProgress?: boolean;
 }
 
 export const CoursesList = ({
     items,
-    userText
+    userText,
+    showProgress
 }: CoursesListProps) => {
     return (
         <div>
@@ -25,6 +27,7 @@ export const CoursesList = ({
                         chaptersLength={item.chapters.length}
                         progress={item.progress}
                         category={item?.category?.name || "Без категорії"}
+                        showProgress={showProgress}
                     />
                 ))}
             </div>

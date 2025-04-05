@@ -6,39 +6,46 @@ type CourseWithCategory = Course & {
     category: Category | null;
 };
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
 
-        if (!token || !userId) {
-            console.error("GET_COURSES: No token or userId found");
-            return NextResponse.json({
-                courses: []
-            });
+        if (!token) {
+            console.warn("GET_COURSES: No access token");
+            return NextResponse.json(
+                { courses: [], totalCount: 0, page: 1, pageSize: 10, hasPreviousPage: false, hasNextPage: false },
+                { status: 401 }
+            );
         }
 
+        const url = new URL(req.url);
+        const page = Number(url.searchParams.get("page") || 1);
+        const pageSize = Number(url.searchParams.get("pageSize") || 100);
+
         const queryParams = new URLSearchParams();
-        queryParams.append("OwnerId", userId);
-        queryParams.append("PageNumber", "1");
-        queryParams.append("PageSize", "100");
-        queryParams.append("IsAscending", "true");
+        queryParams.append("PageNumber", page.toString());
+        queryParams.append("PageSize", pageSize.toString());
         queryParams.append("Include", "category");
 
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses?${queryParams.toString()}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
-        });
+        const apiResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/courses/owned?${queryParams.toString()}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${token}`,
+                },
+            }
+        );
 
         if (!apiResponse.ok) {
-            console.error("GET_COURSES: Failed to fetch courses", apiResponse.status);
-            return NextResponse.json({
-                courses: []
-            });
+            const errorText = await apiResponse.text();
+            console.error("GET_COURSES: Fetch failed", apiResponse.status, errorText);
+            return NextResponse.json(
+                { courses: [], totalCount: 0, page, pageSize, hasPreviousPage: false, hasNextPage: false },
+                { status: apiResponse.status }
+            );
         }
 
         const responseData = await apiResponse.json();
@@ -53,7 +60,7 @@ export async function GET() {
             userId: item.userId,
         }));
 
-       const response = NextResponse.json({
+        return NextResponse.json({
             courses,
             totalCount: responseData.totalCount,
             page: responseData.page,
@@ -61,13 +68,11 @@ export async function GET() {
             hasPreviousPage: responseData.hasPreviousPage,
             hasNextPage: responseData.hasNextPage,
         });
-
-        response.headers.set("Cache-Control", "max-age=900, must-revalidate");
-        return response;
-    } catch (e) {
-        console.error("GET_DASHBOARD_COURSES", e);
-        return NextResponse.json({
-            courses: []
-        });
+    } catch (error) {
+        console.error("GET_COURSES: Unexpected error", error);
+        return NextResponse.json(
+            { courses: [], totalCount: 0, page: 1, pageSize: 10, hasPreviousPage: false, hasNextPage: false },
+            { status: 500 }
+        );
     }
 }

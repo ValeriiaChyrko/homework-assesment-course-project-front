@@ -11,7 +11,7 @@ import {ErrorPage} from "@/components/opps-page";
 type CourseWithProgressWithCategory = Course & {
     category: Category | null;
     chapters: Chapter[];
-    progress: number | null;
+    progress: number;
 };
 
 interface CoursesProgressResponse {
@@ -57,7 +57,7 @@ export default function Dashboard() {
                             />
                         )}
                     </div>
-                    <CoursesList items={[...coursesInProgress, ...completedCourses]} userText={userText} />
+                    <CoursesList items={[...coursesInProgress, ...completedCourses]} userText={userText} showProgress={true}/>
                 </>
             )}
         </div>

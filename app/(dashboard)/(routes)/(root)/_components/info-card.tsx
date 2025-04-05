@@ -26,7 +26,7 @@ export const InfoCard = ({
     return (
         <div
             className={`border rounded-md flex items-center gap-x-2 p-3 ${
-                variant === "success" ? "bg-green-50 border-green300" : "bg-blue-50 border-blue-300"
+                variant === "success" ? "bg-green-50 border-green-300" : "bg-blue-50 border-blue-300"
             }`}
         >
             <IconBadge
