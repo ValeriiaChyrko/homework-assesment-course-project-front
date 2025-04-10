@@ -1,6 +1,7 @@
 ﻿import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 type CourseWithProgressWithCategory = Course & {
     category: Category | null;
@@ -16,7 +17,14 @@ export async function GET(req: Request) {
         if (!token) {
             console.warn("GET_COURSES: No access token");
             return NextResponse.json(
-                { courses: [], totalCount: 0, page: 1, pageSize: 10, hasPreviousPage: false, hasNextPage: false },
+                {
+                    courses: [],
+                    totalCount: 0,
+                    page: 1,
+                    pageSize: 10,
+                    hasPreviousPage: false,
+                    hasNextPage: false,
+                },
                 { status: 401 }
             );
         }
@@ -38,35 +46,35 @@ export async function GET(req: Request) {
             ["PageSize", pageSize.toString()],
         ]);
 
-        const apiResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/courses?${queryParams}`,
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+        const { data, status, error } = await fetchWithAuth<{
+            items: CourseWithProgressWithCategory[];
+            totalCount: number;
+            page: number;
+            pageSize: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        }>({
+            method: "GET",
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses?${queryParams.toString()}`,
+        });
 
-        if (!apiResponse.ok) {
-            const errorText = await apiResponse.text();
-            console.error("GET_COURSES: Fetch failed", apiResponse.status, errorText);
+        if (!data) {
+            console.error("GET_COURSES: Fetch failed", status, error);
             return NextResponse.json(
-                { courses: [], totalCount: 0, page: 1, pageSize: 10, hasPreviousPage: false, hasNextPage: false },
-                { status: apiResponse.status }
+                {
+                    courses: [],
+                    totalCount: 0,
+                    page: 1,
+                    pageSize: 10,
+                    hasPreviousPage: false,
+                    hasNextPage: false,
+                },
+                { status }
             );
         }
 
-        const {
-            items,
-            totalCount,
-            page: currentPage,
-            pageSize: currentPageSize,
-            hasNextPage,
-            hasPreviousPage,
-        } = await apiResponse.json();
-
-        const courses: CourseWithProgressWithCategory[] = items.map(
+        const courses: CourseWithProgressWithCategory[] = data.items.map(
             (item: CourseWithProgressWithCategory) => ({
                 ...item,
                 category: item.category ?? { name: "Без категорії" },
@@ -87,16 +95,23 @@ export async function GET(req: Request) {
             courses,
             completedCourses,
             coursesInProgress,
-            totalCount,
-            page: currentPage,
-            pageSize: currentPageSize,
-            hasPreviousPage,
-            hasNextPage,
+            totalCount: data.totalCount,
+            page: data.page,
+            pageSize: data.pageSize,
+            hasPreviousPage: data.hasPreviousPage,
+            hasNextPage: data.hasNextPage,
         });
     } catch (error) {
         console.error("GET_COURSES: Unexpected error", error);
         return NextResponse.json(
-            { courses: [], totalCount: 0, page: 1, pageSize: 10, hasPreviousPage: false, hasNextPage: false },
+            {
+                courses: [],
+                totalCount: 0,
+                page: 1,
+                pageSize: 10,
+                hasPreviousPage: false,
+                hasNextPage: false,
+            },
             { status: 500 }
         );
     }
@@ -106,37 +121,24 @@ export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
+
+        if (!token) {
+            console.warn("CREATE_COURSE: No access token");
+            return NextResponse.json({ course: null }, { status: 401 });
+        }
 
         const { title } = await req.json();
 
-        if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
-            return {
-                course: null
-            };
-        }
-
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses`, {
+        const { data, status } = await fetchWithAuth({
             method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                title,
-                userId
-            })
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses`,
+            payload: { title },
         });
 
-        if (!apiResponse.ok) {
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        const course = await apiResponse.json();
-        return NextResponse.json(course);
-    } catch (e) {
-        console.error("[COURSES]", e);
-        return new NextResponse("Internal Server Error", { status: 500 });
+        return NextResponse.json({ course: data }, { status });
+    } catch (error) {
+        console.error("CREATE_COURSE: Unexpected error", error);
+        return NextResponse.json({ course: null }, { status: 500 });
     }
 }

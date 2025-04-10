@@ -45,13 +45,16 @@ export const Actions = ({
     }, [isPublished, courseId, confetti, queryClient]);
 
     const handleDelete = useCallback(async () => {
+        console.log("courseId", courseId);
         setIsLoading(true);
         try {
             await axios.delete(`/api/courses/${courseId}`);
-            toast.success("Дані видалено успішно.");
 
             await queryClient.invalidateQueries({ queryKey: ["owned_courses"] });
             await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
+
+            toast.success("Дані видалено успішно.");
+
             router.push(`/teacher/courses`);
         } catch (error) {
             toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");

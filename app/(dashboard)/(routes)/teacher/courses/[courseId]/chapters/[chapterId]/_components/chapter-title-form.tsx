@@ -94,7 +94,7 @@ export const ChapterTitleForm = ({ initialData, courseId, chapterId }: ChapterTi
                                 <FormControl>
                                     <Input
                                         disabled={isSubmitting}
-                                        placeholder="Наприклад, 'Вступ до курсу"
+                                        placeholder="Наприклад, 'Вступ до курсу'"
                                         className="w-full p-3 rounded-lg border border-gray-400"
                                         aria-label="Поле введення назви: Наприклад, 'Вступ до курсу'"
                                         {...field}

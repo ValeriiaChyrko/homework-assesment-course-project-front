@@ -16,23 +16,30 @@ import { EditChapterSkeleton } from "@/app/(dashboard)/(routes)/teacher/courses/
 import Link from "next/link";
 import ChapterAttachmentForm
     from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/chapters/[chapterId]/_components/chapter-attachment-form";
+import {ErrorPage} from "@/components/opps-page";
 
 const fetchChapter = async (courseId: string, chapterId: string): Promise<Chapter> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}`);
-    return response.data;
+    console.log("Fetched chapter:", response.data.chapter);
+    return response.data.chapter;
 };
 
 const ChapterIdPage = ({ params }: { params: Promise<{ courseId: string, chapterId: string }> }) => {
-    const { courseId, chapterId } = React.use(params);
+    const courseId = React.use(params).courseId;
+    const chapterId = React.use(params).chapterId;
 
-    const { data: chapter, isLoading } = useQuery({
+    const { data: chapter, error: chapterError, isLoading } = useQuery<Chapter>({
         queryKey: ["chapter", courseId, chapterId],
         queryFn: () => fetchChapter(courseId, chapterId),
         enabled: !!courseId && !!chapterId,
     });
 
     if (isLoading) return <EditChapterSkeleton />;
+    if (chapterError) return <ErrorPage />;
     if (!chapter) return null;
+
+    // Виводимо chapter в консоль, коли він успішно отриманий
+    console.log("chapter", chapter);
 
     const requiredFields = [
         !!chapter.title,

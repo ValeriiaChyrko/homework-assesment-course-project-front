@@ -9,14 +9,9 @@ import { FileUpload } from "@/components/file-upload";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 
-interface Attachment {
-    id: string;
-    name: string;
-}
-
 interface AttachmentFormProps {
     initialData: {
-        attachments: Attachment[];
+        attachments: Attachment[] | null;
     };
     courseId: string;
 }
@@ -28,7 +23,7 @@ const AttachmentForm = ({ initialData, courseId }: AttachmentFormProps) => {
 
     const toggleEditing = () => setEditing((prev) => !prev);
 
-    const handleSubmit = useCallback(async (values: { url: string; name: string }) => {
+    const handleSubmit = useCallback(async (values: { url: string; name: string; key: string }) => {
         try {
             await axios.post(`/api/courses/${courseId}/attachments`, values);
             await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
@@ -40,11 +35,13 @@ const AttachmentForm = ({ initialData, courseId }: AttachmentFormProps) => {
         }
     }, [courseId, queryClient]);
 
-    const handleDelete = useCallback(async (attachmentId: string) => {
+    const handleDelete = useCallback(async (attachment: Attachment) => {
         try {
-            setDeletingId(attachmentId);
-            await axios.delete(`/api/courses/${courseId}/attachments/${attachmentId}`);
+            setDeletingId(attachment.id);
+
+            await axios.delete(`/api/courses/${courseId}/attachments/${attachment.id}/${attachment.key}`);
             await queryClient.invalidateQueries({ queryKey: ["course", courseId] });
+
             toast.success("Вкладення видалено успішно.");
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
@@ -73,8 +70,8 @@ const AttachmentForm = ({ initialData, courseId }: AttachmentFormProps) => {
                 </Button>
             </div>
             {!isEditing ? (
-                <div className={cn("text-md text-gray-700 mt-2", !initialData.attachments.length && "italic")}>
-                    {!initialData.attachments.length ? "Ще не додано жодних файлів" : (
+                <div className={cn("text-md text-gray-700 mt-2", !initialData.attachments?.length && "italic")}>
+                    {!initialData.attachments?.length ? "Ще не додано жодних файлів" : (
                         <div>
                             <div className="space-y-2 mt-4">
                                 {initialData.attachments.map((attachment) => (
@@ -90,7 +87,7 @@ const AttachmentForm = ({ initialData, courseId }: AttachmentFormProps) => {
                                             </div>
                                         ) : (
                                             <button
-                                                onClick={() => handleDelete(attachment.id)}
+                                                onClick={() => handleDelete(attachment)}
                                                 className="ml-auto hover:opacity-75 transition"
                                                 aria-label="Видалити вкладення"
                                             >
@@ -101,7 +98,7 @@ const AttachmentForm = ({ initialData, courseId }: AttachmentFormProps) => {
                                 ))}
                             </div>
                             <div className="text-sm text-muted-foreground mt-4">
-                                Ці ресурси відображатимуться в кожному з розділів курсу.
+                                Ці ресурси відображатимуться в кожному з розділів курсу
                             </div>
                         </div>
                     )}
@@ -110,9 +107,9 @@ const AttachmentForm = ({ initialData, courseId }: AttachmentFormProps) => {
                 <div>
                     <FileUpload
                         endpoint="courseAttachment"
-                        onChangeAction={(url?: string, name?: string) => {
-                            if (url && name) {
-                                handleSubmit({ url, name });
+                        onChangeAction={(url?: string, name?: string, key?: string) => {
+                            if (url && name && key) {
+                                handleSubmit({ url, name, key });
                             }
                         }}
                     />

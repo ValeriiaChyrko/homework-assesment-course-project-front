@@ -1,87 +1,85 @@
-﻿import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+﻿import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
-export async function GET(
-    req: Request,
-    { params }: { params: { courseId: string, chapterId: string } }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId:string }> }) {
     try {
-        const session = await getServerSession(authOptions);
-        const token = session?.accessToken;
-        const userId = session?.user?.id;
-
         const { courseId, chapterId } = await params;
 
-        if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
-            return {
-                attachment: null
-            };
+        if (!courseId) {
+            console.warn("[CHAPTER_ID_ATTACHMENTS] GET: Missing courseId in params");
+            return NextResponse.json({ attachment: null }, { status: 400 });
         }
 
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/attachments`, {
+        if (!chapterId) {
+            console.warn("[CHAPTER_ID_ATTACHMENTS] GET: Missing chapterId in params");
+            return NextResponse.json({ attachment: null }, { status: 400 });
+        }
+
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+
+        if (!token) {
+            console.warn("[CHAPTER_ID_ATTACHMENTS] GET: No access token");
+            return NextResponse.json({ attachment: null }, { status: 401 });
+        }
+
+        const { data, status } = await fetchWithAuth({
             method: "GET",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            }
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/attachments`,
         });
 
-        if (!apiResponse.ok) {
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        const attachment = await apiResponse.json();
-        return NextResponse.json(attachment);
-    } catch (e) {
-        console.error("[CHAPTER_ID_ATTACHMENTS]", e);
-        return new NextResponse("Internal Server Error", { status: 500 });
+        return NextResponse.json({ attachment: data }, { status });
+    } catch (error) {
+        console.error("[CHAPTER_ID_ATTACHMENTS] GET: Unexpected error", error);
+        return NextResponse.json({ attachment: null }, { status: 500 });
     }
 }
 
 export async function POST(
     req: Request,
-    { params }: { params: { courseId: string, chapterId: string } }
-) {
+    { params }: { params: Promise<{ courseId: string, chapterId:string }> }) {
     try {
+        const { courseId, chapterId } = await params;
+
+        if (!courseId) {
+            console.warn("[CHAPTER_ID_ATTACHMENTS] POST: Missing courseId in params");
+            return NextResponse.json({ attachment: null }, { status: 400 });
+        }
+
+        if (!chapterId) {
+            console.warn("[CHAPTER_ID_ATTACHMENTS] POST: Missing chapterId in params");
+            return NextResponse.json({ attachment: null }, { status: 400 });
+        }
+
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
 
-        const { courseId, chapterId } = await params;
-        const { url, name } = await req.json();
-
-        if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
-            return {
-                attachment: null
-            };
+        if (!token) {
+            console.warn("[CHAPTER_ID_ATTACHMENTS] POST: No access token");
+            return NextResponse.json({ attachment: null }, { status: 401 });
         }
 
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/attachments`, {
+        const { url, name, key } = await req.json();
+
+        const { data, status } = await fetchWithAuth({
             method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/attachments`,
+            payload: {
+                courseId,
+                chapterId,
+                url,
+                name,
+                key
             },
-            body: JSON.stringify({
-                userId: userId,
-                courseId: courseId,
-                chapterId: chapterId,
-                url: url,
-                name: name,
-            })
         });
 
-        if (!apiResponse.ok) {
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        const attachment = await apiResponse.json();
-        return NextResponse.json(attachment);
-    } catch (e) {
-        console.error("[CHAPTER_ID_ATTACHMENTS]", e);
-        return new NextResponse("Internal Server Error", { status: 500 });
+        return NextResponse.json({ attachment: data }, { status });
+    } catch (error) {
+        console.error("[CHAPTER_ID_ATTACHMENTS] POST: Unexpected error", error);
+        return NextResponse.json({ attachment: null }, { status: 500 });
     }
 }

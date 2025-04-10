@@ -9,11 +9,6 @@ import { FileUpload } from "@/components/file-upload";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 
-interface Attachment {
-    id: string;
-    name: string;
-}
-
 interface ChapterAttachmentFormProps {
     initialData: {
         attachments: Attachment[];
@@ -29,7 +24,7 @@ const ChapterAttachmentForm = ({ initialData, courseId, chapterId }: ChapterAtta
 
     const toggleEditing = () => setEditing((prev) => !prev);
 
-    const handleSubmit = useCallback(async (values: { url: string; name: string }) => {
+    const handleSubmit = useCallback(async (values: { url: string; name: string; key: string }) => {
         try {
             await axios.post(`/api/courses/${courseId}/chapters/${chapterId}/attachments`, values);
             await queryClient.invalidateQueries({ queryKey: ["chapter", courseId, chapterId] })
@@ -41,11 +36,13 @@ const ChapterAttachmentForm = ({ initialData, courseId, chapterId }: ChapterAtta
         }
     }, [courseId, chapterId, queryClient]);
 
-    const handleDelete = useCallback(async (attachmentId: string) => {
+    const handleDelete = useCallback(async (attachment: Attachment) => {
         try {
-            setDeletingId(attachmentId);
-            await axios.delete(`/api/courses/${courseId}/chapters/${chapterId}/attachments/${attachmentId}`);
+            setDeletingId(attachment.id);
+
+            await axios.delete(`/api/courses/${courseId}/chapters/${chapterId}/attachments/${attachment.id}/${attachment.key}`);
             await queryClient.invalidateQueries({ queryKey: ["chapter", courseId, chapterId] })
+
             toast.success("Вкладення видалено успішно.");
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "На жаль, щось пішло не так. Спробуйте ще раз.");
@@ -91,7 +88,7 @@ const ChapterAttachmentForm = ({ initialData, courseId, chapterId }: ChapterAtta
                                             </div>
                                         ) : (
                                             <button
-                                                onClick={() => handleDelete(attachment.id)}
+                                                onClick={() => handleDelete(attachment)}
                                                 className="ml-auto hover:opacity-75 transition"
                                                 aria-label="Видалити вкладення"
                                             >
@@ -111,9 +108,9 @@ const ChapterAttachmentForm = ({ initialData, courseId, chapterId }: ChapterAtta
                 <div>
                     <FileUpload
                         endpoint="courseAttachment"
-                        onChangeAction={(url?: string, name?: string) => {
-                            if (url && name) {
-                                handleSubmit({ url, name });
+                        onChangeAction={(url?: string, name?: string, key?: string) => {
+                            if (url && name && key) {
+                                handleSubmit({ url, name, key });
                             }
                         }}
                     />

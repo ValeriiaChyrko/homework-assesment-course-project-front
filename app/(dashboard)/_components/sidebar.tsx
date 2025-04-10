@@ -1,10 +1,19 @@
-﻿import { Logo } from "./logo";
+﻿"use client";
+
+import { Logo } from "./logo";
 import {SidebarRoutes} from "./sidebar-routes";
+import {cn} from "@/lib/utils";
+import {useTheme} from "next-themes";
 
 export const Sidebar = () => {
+    const { theme } = useTheme();
+
     return (
-        <div className="h-full w-full border-r border-gray-900/25 flex-col overflow-y-auto bg-white shadow-sm">
-            <div className="p-6">
+        <div className={cn(
+            "h-full w-full border-r flex-col overflow-y-auto shadow-sm",
+            theme === "dark" ? "border-gray-50 transition-colors duration-300" : "border-gray-900/25"
+        )}>
+            <div className="px-8 py-1">
                 <Logo />
             </div>
             <div className="flex flex-col w-full">

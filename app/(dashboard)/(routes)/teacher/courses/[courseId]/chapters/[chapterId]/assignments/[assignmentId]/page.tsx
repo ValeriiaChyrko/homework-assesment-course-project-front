@@ -22,22 +22,24 @@ import Link from "next/link";
 import {
     EditAssignmentSkeleton
 } from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/chapters/[chapterId]/assignments/[assignmentId]/_components/edit-assignment-skeleton";
+import {ErrorPage} from "@/components/opps-page";
 
 const fetchAssignment = async (courseId:string, chapterId:string, assignmentId:string) => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`);
-    return response.data;
+    return response.data.assignment;
 };
 
 const AssignmentIdPage = ({ params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId:string }> })  => {
     const { courseId, chapterId, assignmentId } = React.use(params);
 
-    const { data: assignment, isLoading } = useQuery({
+    const { data: assignment, error: assignmentError, isLoading } = useQuery({
         queryKey: ["assignment", courseId, chapterId, assignmentId],
         queryFn: () => fetchAssignment(courseId, chapterId, assignmentId),
         enabled: !!courseId && !!chapterId && !!assignmentId,
     });
 
     if (isLoading) return <EditAssignmentSkeleton/>;
+    if (assignmentError) return <ErrorPage />;
     if (!assignment) return null;
 
     const requiredFields = [

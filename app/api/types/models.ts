@@ -25,6 +25,7 @@ interface Category {
 
 interface Attachment {
     id: UUID;
+    key: string;
     name: string;
     url: string;
     courseId: UUID;

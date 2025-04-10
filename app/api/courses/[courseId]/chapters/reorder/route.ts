@@ -1,43 +1,46 @@
 ﻿import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 export async function PUT(
     req: Request,
-    { params }: { params: { courseId: string } }
+    { params }: { params: Promise<{ courseId: string }> }
 ) {
     try {
+        const { courseId } = await params;
+
+        if (!courseId) {
+            console.warn("[REORDER CHAPTER] PUT: Missing courseId in params");
+            return NextResponse.json({ chapter: null }, { status: 400 });
+        }
+
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
         const userId = session?.user?.id;
 
-        const { courseId } = await params;
         const { list } = await req.json();
 
         if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
-            return {
-                chapter: null
-            };
+            console.error("PUT_CHAPTER: No token or userId found");
+            return NextResponse.json({ chapter: null }, { status: 401 });
         }
 
-        const queryParams = new URLSearchParams({ userId });
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/reorder?${queryParams.toString()}`, {
+        const url = `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/reorder`;
+        const { status } = await fetchWithAuth({
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify(list)
+            token,
+            url,
+            payload: list,
         });
 
-        if (!apiResponse.ok) {
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
+        if (status !== 200) {
+            return new NextResponse("Internal Server Error", { status });
         }
 
         return new NextResponse("OK", { status: 200 });
     } catch (e) {
-        console.error("[REORDER]", e);
+        console.error("[REORDER CHAPTER] PUT: Unexpected error", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

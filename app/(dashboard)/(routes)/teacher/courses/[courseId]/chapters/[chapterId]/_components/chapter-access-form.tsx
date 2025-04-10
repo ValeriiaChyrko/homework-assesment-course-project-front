@@ -81,7 +81,7 @@ export const ChapterAccessForm = ({ initialData, courseId, chapterId }: ChapterA
             </div>
             {!isEditing ? (
                 <div className={cn("text-md text-gray-700 mt-2", !initialData.isFree && "italic")}>
-                    {initialData.isFree ? "Цей розділ доступний для перегляду." : "Доступ до цього розділу обмежено."}
+                    {initialData.isFree ? "Цей розділ доступний для виконання завдань." : "Доступ до цього розділу обмежено."}
                 </div>
             ) : (
                 <Form {...form}>

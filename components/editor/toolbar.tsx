@@ -553,8 +553,8 @@ export const Toolbar = () => {
     ];
 
     return (
-        <div className="w-full bg-slate-100 border border-slate-300 px-2.5 py-0.5 rounded-[24px] min-h-[40px] flex items-center gap-x-0.35 overflow-x-auto editor-container">
-            {sections[0].map((section) => (
+        <div className="w-full items-center justify-center bg-slate-100 border border-slate-300 px-2.5 py-0.5 rounded-[24px] min-h-[40px] flex gap-x-0.35 overflow-x-auto editor-container">
+        {sections[0].map((section) => (
                 <ToolbarButton key={section.label} {...section} />
             ))}
             <Separator orientation="vertical" className="ml-1 h-6 bg-slate-400" />

@@ -1,43 +1,45 @@
-﻿import {NextResponse} from "next/server";
-import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+﻿import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 export async function PUT(
     req: Request,
-    { params }: { params: { courseId: string, chapterId: string } }
+    { params }: { params: Promise<{ courseId: string, chapterId: string }> }
 ) {
     try {
+        const { courseId, chapterId } = await params;
+
+        if (!courseId) {
+            console.warn("[REORDER ASSIGNMENTS] PUT: Missing courseId in params");
+            return NextResponse.json({ chapter: null }, { status: 400 });
+        }
+
+        if (!chapterId) {
+            console.warn("[REORDER ASSIGNMENTS] PUT: Missing chapterId in params");
+            return NextResponse.json({ chapter: null }, { status: 400 });
+        }
+
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
 
-        const { courseId, chapterId } = await params;
+        if (!token) {
+            console.warn("[REORDER ASSIGNMENTS] PUT: No access token");
+            return NextResponse.json({ chapter: null }, { status: 401 });
+        }
+
         const { list } = await req.json();
 
-        if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
-            return {
-                chapter: null
-            };
-        }
-
-        const queryParams = new URLSearchParams({ userId });
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/reorder?${queryParams.toString()}`, {
+        const { status } = await fetchWithAuth({
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify(list)
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/reorder`,
+            payload: list,
         });
 
-        if (!apiResponse.ok) {
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        return new NextResponse("OK", { status: 200 });
-    } catch (e) {
-        console.error("[REORDER]", e);
+        return new NextResponse("OK", { status });
+    } catch (error) {
+        console.error("[REORDER ASSIGNMENTS] PUT: Unexpected error", error);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

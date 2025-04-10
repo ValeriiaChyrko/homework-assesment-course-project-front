@@ -26,7 +26,7 @@ import {useRouter} from "next/navigation";
 interface ChaptersFormProps {
     initialData: {
         title: string;
-        chapters: Chapter[];
+        chapters: Chapter[] | null;
     };
     courseId: string;
 }
@@ -49,7 +49,7 @@ export const ChaptersForm  = ({ initialData, courseId }: ChaptersFormProps) => {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: initialData.title || '',
+            title: '',
         },
     });
 
@@ -149,9 +149,9 @@ export const ChaptersForm  = ({ initialData, courseId }: ChaptersFormProps) => {
             {!isCreating && (
                 <div className={cn(
                     "text-md text-gray-700 mt-2",
-                    !initialData.chapters.length && "italic"
+                    !initialData.chapters?.length && "italic"
                 )}>
-                    {!initialData.chapters.length && "Ще не додано жодних розділів."}
+                    {!initialData.chapters?.length && "Ще не додано жодних розділів."}
                     <ChaptersList
                         onEditAction={onEdit}
                         onReorderAction={onReorder}

@@ -98,7 +98,9 @@ export const AssignmentDescriptionForm= ({ initialData, courseId, chapterId, ass
                 </div>
             ) :  (
                 <>
-                    <Toolbar/>
+                    <div className="scale-90">
+                        <Toolbar/>
+                    </div>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
                             <FormField control={form.control} name="description" render={({ field }) => (
@@ -107,6 +109,7 @@ export const AssignmentDescriptionForm= ({ initialData, courseId, chapterId, ass
                                         <Editor
                                             onChangeAction={function (value: string): void {
                                                 form.setValue("description", value);
+                                                form.trigger("description");
                                             }} {...field}
                                         />
                                     </FormControl>

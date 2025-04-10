@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { Home } from "lucide-react";
 import axios from "axios";
 import { UserAvatar } from "@/app/(dashboard)/(routes)/(root)/_components/user-avatar";
+import {ThemeToggleButton} from "@/components/theme-toggle-button";
 
 export const NavbarRoutes = () => {
     const pathname = usePathname();
@@ -55,6 +56,8 @@ export const NavbarRoutes = () => {
                     </Link>
                 ) : null}
                 <Logout />
+                <ThemeToggleButton />
+                <div className="h-8 w-px bg-gray-300 mx-2 mt-1" />
                 <UserAvatar />
             </div>
         </>

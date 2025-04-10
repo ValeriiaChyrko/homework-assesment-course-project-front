@@ -1,100 +1,113 @@
 ﻿import { NextResponse } from "next/server";
-import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
-export async function GET(
-    req: Request,
-    { params }: { params: { courseId: string; chapterId: string; assignmentId: string } }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId: string }> }) {
     try {
-        const session = await getServerSession(authOptions);
-        const token = session?.accessToken;
-        const userId = session?.user?.id;
-
         const { courseId, chapterId, assignmentId } = await params;
 
-        if (!token || !userId) {
-            console.error("GET_ASSIGNMENT: No token or userId found");
-            return {
-                assignment: null
-            };
+        if (!courseId) {
+            console.warn("[ASSIGNMENT] GET: Missing courseId in params");
+            return NextResponse.json({ course: null }, { status: 400 });
         }
 
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`, {
+        if (!chapterId) {
+            console.warn("[ASSIGNMENT] GET: Missing chapterId in params");
+            return NextResponse.json({ chapter: null }, { status: 400 });
+        }
+
+        if (!assignmentId) {
+            console.warn("[ASSIGNMENT] GET: Missing assignmentId in params");
+            return NextResponse.json({ assignment: null }, { status: 400 });
+        }
+
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+
+        if (!token) {
+            console.error("GET_ASSIGNMENT: No token found");
+            return NextResponse.json({ assignment: null });
+        }
+
+        const { data, status } = await fetchWithAuth({
             method: "GET",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`,
         });
 
-        if (!apiResponse.ok) {
-            console.error("GET_ASSIGNMENT: Failed to fetch courses", apiResponse.status);
-            return NextResponse.json({
-                assignment: null
-            });
-        }
-
-        const assignment = await apiResponse.json();
-        return NextResponse.json(assignment);
+        return NextResponse.json({ assignment: data }, { status });
     } catch (e) {
         console.error("[ASSIGNMENT]", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
 
-export async function DELETE(
-    req: Request,
-    { params }: { params: { courseId: string; chapterId: string; assignmentId: string } }
-) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId: string }> }) {
     try {
-        const session = await getServerSession(authOptions);
-        const token = session?.accessToken;
-        const userId = session?.user?.id;
-
         const { courseId, chapterId, assignmentId } = await params;
 
-        if (!token || !userId) {
-            console.error("GET_CHAPTER: No token or userId found");
-            return {
-                chapter: null
-            };
+        if (!courseId) {
+            console.warn("[ASSIGNMENT] DELETE: Missing courseId in params");
+            return NextResponse.json({ course: null }, { status: 400 });
         }
 
-        const queryParams = new URLSearchParams({userId});
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}?${queryParams.toString()}`, {
+        if (!chapterId) {
+            console.warn("[ASSIGNMENT] DELETE: Missing chapterId in params");
+            return NextResponse.json({ chapter: null }, { status: 400 });
+        }
+
+        if (!assignmentId) {
+            console.warn("[ASSIGNMENT] DELETE: Missing assignmentId in params");
+            return NextResponse.json({ assignment: null }, { status: 400 });
+        }
+
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+
+        if (!token) {
+            console.error("GET_CHAPTER: No token found");
+            return NextResponse.json({ chapter: null });
+        }
+
+        const { data, status } = await fetchWithAuth({
             method: "DELETE",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`,
         });
 
-        if (!apiResponse.ok) {
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        const deletedCourse = await apiResponse.json();
-        return NextResponse.json(deletedCourse);
+        return NextResponse.json({ assignmentId: data }, { status });
     } catch (e) {
         console.error("[CHAPTER_ASSIGNMENT_ID_DELETE]", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
 
-export async function PATCH(
-    req: Request,
-    { params }: { params: { courseId: string; chapterId: string; assignmentId: string } }
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId: string }> }) {
     try {
+        const { courseId, chapterId, assignmentId } = await params;
+
+        if (!courseId) {
+            console.warn("[ASSIGNMENT] PATCH: Missing courseId in params");
+            return NextResponse.json({ course: null }, { status: 400 });
+        }
+
+        if (!chapterId) {
+            console.warn("[ASSIGNMENT] PATCH: Missing chapterId in params");
+            return NextResponse.json({ chapter: null }, { status: 400 });
+        }
+
+        if (!assignmentId) {
+            console.warn("[ASSIGNMENT] PATCH: Missing assignmentId in params");
+            return NextResponse.json({ assignment: null }, { status: 400 });
+        }
+
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
 
-        const { courseId, chapterId, assignmentId } = await params;
         const { repositoryUrl, ...values } = await req.json();
 
-        if (!token || !userId) {
+        if (!token) {
             console.error("PATCH: No token or userId found");
             return new NextResponse("Unauthorized", { status: 401 });
         }
@@ -122,26 +135,16 @@ export async function PATCH(
             ...(repositoryName && { repositoryName }),
         };
 
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`, {
+        const { data, status } = await fetchWithAuth({
             method: "PATCH",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`,
+            payload: {
+                ...updateData,
             },
-            body: JSON.stringify({
-                userId,
-                ...updateData
-            })
         });
 
-        if (!apiResponse.ok) {
-            const errorMessage = await apiResponse.text();
-            console.error("API Error:", errorMessage);
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        const chapter = await apiResponse.json();
-        return NextResponse.json(chapter);
+        return NextResponse.json({ assignment: data }, { status });
     } catch (e) {
         console.error("[CHAPTER_ASSIGNMENT_ID]", e);
         return new NextResponse("Internal Server Error", { status: 500 });

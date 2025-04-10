@@ -1,6 +1,7 @@
 ﻿import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 type CourseWithProgressWithCategory = Course & {
     category: Category | null;
@@ -29,36 +30,28 @@ export async function GET() {
             ["IsPublished", "true"]
         ]);
 
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/courses?${queryParams}`,
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
+        const { data, status, error } = await fetchWithAuth<{
+            items: CourseWithProgressWithCategory[];
+            totalCount: number;
+            page: number;
+            pageSize: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        }>({
+            method: "GET",
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses?${queryParams}`,
+        });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("DASHBOARD_COURSES: Fetch failed", response.status, errorText);
-
+        if (!data) {
+            console.error("DASHBOARD_COURSES: Fetch failed", status, error);
             return NextResponse.json(
                 { completedCourses: [], coursesInProgress: [] },
-                { status: response.status }
+                { status }
             );
         }
 
-        const {
-            items,
-            totalCount,
-            page,
-            pageSize,
-            hasNextPage,
-            hasPreviousPage
-        } = await response.json();
-
-        const courses: CourseWithProgressWithCategory[] = items.map((item:CourseWithProgressWithCategory) => ({
+        const courses = data.items.map((item: CourseWithProgressWithCategory) => ({
             ...item,
             category: item.category ?? { name: "Без категорії" },
             chapters: item.chapters ?? [],
@@ -76,11 +69,11 @@ export async function GET() {
         return NextResponse.json({
             completedCourses,
             coursesInProgress,
-            totalCount,
-            page,
-            pageSize,
-            hasPreviousPage,
-            hasNextPage
+            totalCount: data.totalCount,
+            page: data.page,
+            pageSize: data.pageSize,
+            hasPreviousPage: data.hasPreviousPage,
+            hasNextPage: data.hasNextPage
         });
     } catch (error) {
         console.error("DASHBOARD_COURSES: Unexpected error", error);

@@ -10,6 +10,8 @@ import { jwtDecode } from "jwt-decode";
 interface AccessTokenData {
     login: string;
     avatar_url: string;
+    name: string;
+    email: string;
 }
 
 export function UserAvatar() {
@@ -25,6 +27,8 @@ export function UserAvatar() {
             setUserInfo({
                 login: decodedToken.login,
                 avatar_url: decodedToken.avatar_url,
+                name: decodedToken.name,
+                email: decodedToken.email
             });
         } catch (error) {
             console.error("Error decoding token:", error);
@@ -39,9 +43,17 @@ export function UserAvatar() {
     }
 
     return (
-        <Avatar>
-            <AvatarImage src={imageSrc} alt={userInfo?.login} />
-            <AvatarFallback>{fallbackText}</AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-4">
+            <div className="flex justify-center items-center">
+                <Avatar>
+                    <AvatarImage src={imageSrc} alt={userInfo?.login} />
+                    <AvatarFallback>{fallbackText}</AvatarFallback>
+                </Avatar>
+            </div>
+            <div className="flex flex-col justify-center cursor-default">
+                <p className="m-0 text-sm">{userInfo?.name}</p>
+                <p className="m-0 text-xs text-slate-700">{userInfo?.email}</p>
+            </div>
+        </div>
     );
 }

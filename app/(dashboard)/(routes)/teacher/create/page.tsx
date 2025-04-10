@@ -42,7 +42,7 @@ const CreatePage = () => {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const response = await axios.post("/api/courses", values);
-            router.push(`/teacher/courses/${response.data.id}`);
+            router.push(`/teacher/courses/${response.data.course.id}`);
             toast.success("Курс створено успішно.");
         } catch (e) {
             toast.error("На жаль, щось пішло не так. Спробуйте, будь ласка, ще раз.");
@@ -51,7 +51,7 @@ const CreatePage = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto flex items-center justify-center h-full p-7">
+        <div className="min-h-screen max-w-5xl mx-auto mt-[-80px] flex items-center justify-center">
             <div>
                 <h1 className="text-2xl font-semibold text-gray-800 mb-3">
                     Введіть назву курсу

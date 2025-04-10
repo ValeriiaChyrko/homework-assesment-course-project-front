@@ -32,6 +32,7 @@ export const columns: ColumnDef<Course>[] = [
     },
     {
         accessorKey: "isPublished",
+        size: 100,
         header: ({column}) => {
             return (
                 <Button
@@ -54,7 +55,7 @@ export const columns: ColumnDef<Course>[] = [
                     {status ? "Доступний для студентів" : "Прихований"}
                 </Badge>
             )
-        },
+        }
     },
     {
         accessorKey: "category",
@@ -84,7 +85,7 @@ export const columns: ColumnDef<Course>[] = [
             return(
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-4 w-auto p-0 flex items-center" aria-label="Меню параметрів">
+                        <Button variant="ghost" className="h-4 w-auto p-4 flex items-center" aria-label="Меню параметрів">
                             <span className="hidden md:!flex lg:flex items-center">
                                 <Menu className="mr-2 h-4 w-4" />
                                 Меню параметрів
@@ -92,11 +93,11 @@ export const columns: ColumnDef<Course>[] = [
                             <MoreHorizontal className="block h-4 w-4 lg:!hidden" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="border border-gray-200">
+                    <DropdownMenuContent align="end" className="bg-white border border-gray-200 px-2">
                         <Link href={`/teacher/courses/${id}`} aria-label="Редагувати курс">
-                            <DropdownMenuItem className="bg-white p-2" aria-label="Кнопка редагувати">
+                            <DropdownMenuItem className="p-2 cursor-pointer hover:text-accent-foreground" aria-label="Кнопка редагувати">
                                 <PencilIcon className="h-4 w-4 mr-2"/>
-                                Редагувати
+                                Внести зміни
                             </DropdownMenuItem>
                         </Link>
                     </DropdownMenuContent>

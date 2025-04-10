@@ -48,7 +48,7 @@ const CourseLayout = ({
     const { course, progressCount } = data;
 
     return (
-        <div className="h-full">
+        <div className="h-full bg-white dark:bg-gray-900">
             <div className="h-[80px] md:pl-80 fixed inset-y-0 w-full z-50">
                 <CourseNavbar
                     course={course}

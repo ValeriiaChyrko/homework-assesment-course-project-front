@@ -10,7 +10,6 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormMessage,
 } from "@/components/ui/form"
 
 import {Button} from "@/components/ui/button";
@@ -53,7 +52,7 @@ export const DescriptionForm = ({ initialData, courseId, chapterId }: ChapterDes
         },
     });
 
-    const { isSubmitting, isValid } = form.formState;
+    const { isSubmitting, isValid, errors  } = form.formState;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
@@ -97,7 +96,9 @@ export const DescriptionForm = ({ initialData, courseId, chapterId }: ChapterDes
                 </div>
             ) :  (
                 <>
-                    <Toolbar/>
+                    <div className="scale-90">
+                        <Toolbar/>
+                    </div>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
                             <FormField control={form.control} name="description" render={({ field }) => (
@@ -106,10 +107,12 @@ export const DescriptionForm = ({ initialData, courseId, chapterId }: ChapterDes
                                         <Editor
                                             onChangeAction={function (value: string): void {
                                                 form.setValue("description", value);
-                                            }} {...field}
+                                                form.trigger("description");
+                                            }}
+                                            {...field}
                                         />
                                     </FormControl>
-                                    <FormMessage className="text-pink-600" />
+                                    {errors.description && <p className="text-pink-600">{errors.description.message}</p>}
                                 </FormItem>
                             )} />
                             <div className="flex items-center gap-x-2">

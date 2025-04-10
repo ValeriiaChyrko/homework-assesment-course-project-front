@@ -15,7 +15,7 @@ export const MobileSidebar = () => {
             <SheetTrigger className="md:hidden pr-4 hover:opacity-75 transition" aria-label="Бокове меню">
                 <Menu />
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 bg-white">
+            <SheetContent side="left" className="p-0">
                 <VisuallyHidden>
                     <SheetTitle>Navigation</SheetTitle>
                 </VisuallyHidden>

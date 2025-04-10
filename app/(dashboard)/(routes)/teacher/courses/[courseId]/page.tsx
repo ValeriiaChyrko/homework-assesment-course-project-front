@@ -16,10 +16,11 @@ import React from "react";
 import {
     EditCourseSkeleton
 } from "@/app/(dashboard)/(routes)/teacher/courses/[courseId]/_components/edit-course-skeleton";
+import { ErrorPage } from "@/components/opps-page";
 
 const fetchCourse = async (courseId: string): Promise<Course> => {
     const response = await axios.get(`/api/courses/${courseId}`);
-    return response.data;
+    return response.data.course;
 };
 
 const fetchCategories = async (): Promise<Category[]> => {
@@ -30,7 +31,7 @@ const fetchCategories = async (): Promise<Category[]> => {
 const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => {
     const courseId = React.use(params).courseId;
 
-    const { data: course, error: courseError, isLoading: isLoadingCourse } = useQuery({
+    const { data: course, error: courseError, isLoading: isLoadingCourse } = useQuery<Course>({
         queryKey: ["course", courseId],
         queryFn: () => fetchCourse(courseId),
         enabled: !!courseId,
@@ -41,16 +42,15 @@ const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => 
         queryFn: fetchCategories,
     });
 
-    if (isLoadingCourse || isLoadingCategories) return <EditCourseSkeleton/>;
-    if (courseError) return <p>Error loading course: {courseError.message}</p>;
-    if (categoriesError) return <p>Error loading categories: {categoriesError.message}</p>;
+    if (isLoadingCourse) return <EditCourseSkeleton/>;
+    if (courseError || categoriesError) return <ErrorPage/>;
     if (!course) return null;
 
     const requiredFields = [
         !!course.title,
         !!course.description,
         !!course.imageUrl,
-        !!course.categoryId,
+        !!course.category.id,
         course.chapters?.length > 0 && course.chapters.some((chapter: Chapter) => chapter.isPublished),
     ];
 
@@ -89,14 +89,16 @@ const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => 
                         <TitleForm initialData={course} courseId={course.id} />
                         <DescriptionForm initialData={course} courseId={course.id} />
                         <ImageForm initialData={course} courseId={course.id} />
-                        <CategoryForm
-                            initialData={course}
-                            courseId={course.id}
-                            options={categories.map((category) => ({
-                                label: category.name,
-                                value: category.id,
-                            }))}
-                        />
+                        {!isLoadingCategories && (
+                            <CategoryForm
+                                initialData={{ categoryId: course.category?.id }}
+                                courseId={course.id}
+                                options={categories.map((category) => ({
+                                    label: category.name,
+                                    value: category.id,
+                                }))}
+                            />
+                        )}
                     </div>
                     <div className="space-y-6">
                         <div>
@@ -106,11 +108,13 @@ const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => 
                             </div>
                             <ChaptersForm initialData={course} courseId={course.id} />
                         </div>
-                        <div className="flex items-center gap-x-2">
-                            <IconBadge icon={File} />
-                            <h2 className="text-xl">Вкладення та супровідні файли</h2>
+                        <div>
+                            <div className="flex items-center gap-x-2">
+                                <IconBadge icon={File} />
+                                <h2 className="text-xl">Вкладення та супровідні файли</h2>
+                            </div>
+                            <AttachmentForm initialData={course} courseId={course.id} />
                         </div>
-                        <AttachmentForm initialData={course} courseId={course.id} />
                     </div>
                 </div>
             </div>

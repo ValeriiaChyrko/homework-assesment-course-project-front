@@ -1,4 +1,5 @@
 ﻿import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -28,29 +29,28 @@ export async function GET(req: Request) {
         queryParams.append("PageSize", pageSize.toString());
         queryParams.append("Include", "category");
 
-        const apiResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/courses/owned?${queryParams.toString()}`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${token}`,
-                },
-            }
-        );
+        const { data, status, error } = await fetchWithAuth<{
+            items: CourseWithCategory[];
+            totalCount: number;
+            page: number;
+            pageSize: number;
+            hasPreviousPage: boolean;
+            hasNextPage: boolean;
+        }>({
+            method: "GET",
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/owned?${queryParams.toString()}`,
+        });
 
-        if (!apiResponse.ok) {
-            const errorText = await apiResponse.text();
-            console.error("GET_COURSES: Fetch failed", apiResponse.status, errorText);
+        if (!data) {
+            console.error("GET_COURSES: Fetch failed", status, error);
             return NextResponse.json(
                 { courses: [], totalCount: 0, page, pageSize, hasPreviousPage: false, hasNextPage: false },
-                { status: apiResponse.status }
+                { status }
             );
         }
 
-        const responseData = await apiResponse.json();
-
-        const courses: CourseWithCategory[] = responseData.items.map((item: CourseWithCategory) => ({
+        const courses = data.items.map((item: CourseWithCategory) => ({
             id: item.id,
             title: item.title,
             description: item.description,
@@ -62,11 +62,11 @@ export async function GET(req: Request) {
 
         return NextResponse.json({
             courses,
-            totalCount: responseData.totalCount,
-            page: responseData.page,
-            pageSize: responseData.pageSize,
-            hasPreviousPage: responseData.hasPreviousPage,
-            hasNextPage: responseData.hasNextPage,
+            totalCount: data.totalCount,
+            page: data.page,
+            pageSize: data.pageSize,
+            hasPreviousPage: data.hasPreviousPage,
+            hasNextPage: data.hasNextPage,
         });
     } catch (error) {
         console.error("GET_COURSES: Unexpected error", error);

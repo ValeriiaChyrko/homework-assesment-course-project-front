@@ -1,44 +1,34 @@
 ﻿import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {NextResponse} from "next/server";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
-export async function GET(
-    req: Request,
-    { params }: { params: { courseId: string; } }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string }> }) {
     try {
-        const session = await getServerSession(authOptions);
-        const token = session?.accessToken;
-        const userId = session?.user?.id;
-
         const { courseId } = await params;
 
-        if (!token || !userId) {
-            console.error("GET_CHAPTER: No token or userId found");
-            return {
-                chapter: null
-            };
+        if (!courseId) {
+            console.warn("[CHAPTER] GET: Missing courseId in params");
+            return NextResponse.json({ chapter: null }, { status: 400 });
         }
 
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/first`, {
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+
+        if (!token) {
+            console.error("[CHAPTER] GET: No token found");
+            return NextResponse.json({ chapter: null }, { status: 401 });
+        }
+
+        const { data, status } = await fetchWithAuth({
             method: "GET",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/first`,
         });
 
-        if (!apiResponse.ok) {
-            console.error("GET_CHAPTER: Failed to fetch chapter", apiResponse.status);
-            return NextResponse.json({
-                chapter: null
-            });
-        }
-
-        const chapter = await apiResponse.json();
-        return NextResponse.json(chapter);
+        return NextResponse.json({ chapter: data }, { status });
     } catch (e) {
-        console.error("[CHAPTER]", e);
+        console.error("[CHAPTER] GET: Unexpected error", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

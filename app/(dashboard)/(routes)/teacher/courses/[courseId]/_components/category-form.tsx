@@ -23,7 +23,7 @@ import {useQueryClient} from "@tanstack/react-query";
 
 interface CategoryFormProps {
     initialData: {
-        categoryId?: string;
+        categoryId?: string | null;
     };
     courseId: string;
     options: { label: string; value: string } [];
