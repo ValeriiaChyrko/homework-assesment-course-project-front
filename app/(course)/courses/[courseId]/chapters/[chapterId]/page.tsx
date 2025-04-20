@@ -18,37 +18,43 @@ import {ErrorPage} from "@/components/opps-page";
 
 const fetchChapter = async (courseId: string, chapterId: string): Promise<Chapter> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}`);
-    return response.data;
+    return response.data.chapter;
 };
 
 const fetchUserProgress = async (courseId: string, chapterId: string) : Promise<UserChapterProgress | null> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/progress`);
-    return response.data;
+    if (response.status === 204) return null;
+
+    return response.data.userProgress ?? null;
 };
 
 const fetchNextChapter = async (courseId: string, chapterId: string): Promise<Chapter | null> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/next`);
-    return response.data;
+    if (response.status === 204) return null;
+
+    return response.data.nextChapter ?? null;
 };
 
 const fetchEnrollment = async (courseId: string): Promise<Enrollment | null> => {
     const response = await axios.get(`/api/courses/${courseId}/enroll`);
-    return response.data;
+    if (response.status === 204) return null;
+
+    return response.data.enrollment ?? null;
 };
 
-const fetchCourseAttachments = async (courseId: string): Promise<Attachment[] | null> => {
+const fetchCourseAttachments = async (courseId: string): Promise<Attachment[]> => {
     const response = await axios.get(`/api/courses/${courseId}/attachments`);
-    return response.data;
+    return response.data.attachments;
 };
 
-const fetchChapterAttachments = async (courseId: string, chapterId: string): Promise<Attachment[] | null> => {
+const fetchChapterAttachments = async (courseId: string, chapterId: string): Promise<Attachment[]> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/attachments`);
-    return response.data;
+    return response.data.attachments;
 };
 
-const fetchAssignments = async (courseId: string, chapterId: string): Promise<Assignment[] | null> => {
+const fetchAssignments = async (courseId: string, chapterId: string): Promise<Assignment[]> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments`);
-    return response.data;
+    return response.data.assignments;
 };
 
 const ChapterIdPage = ({
@@ -59,50 +65,61 @@ const ChapterIdPage = ({
     const courseId = React.use(params).courseId;
     const chapterId = React.use(params).chapterId;
 
+    const { data: enrollment, error: enrollmentError} = useQuery({
+        queryKey: ["enrollment", courseId],
+        queryFn: () => fetchEnrollment(courseId),
+        enabled: !!courseId,
+    });
+
+    const { data: userProgress, error: userProgressError } = useQuery({
+        queryKey: ["userProgress", courseId, chapterId],
+        queryFn: () => fetchUserProgress(courseId, chapterId),
+        enabled: !!courseId && !!chapterId,
+    });
+
     const { data: chapter, error: chapterError, isLoading: isLoadingChapter } = useQuery({
         queryKey: ["chapter", courseId, chapterId],
         queryFn: () => fetchChapter(courseId, chapterId),
         enabled: !!courseId && !!chapterId,
     });
 
-    const { data: userProgress } = useQuery({
-        queryKey: ["userProgress", courseId, chapterId],
-        queryFn: () => fetchUserProgress(courseId, chapterId),
+    const { data: courseAttachments, error: courseAttachmentsError } = useQuery({
+        queryKey: ["course-attachments", courseId],
+        queryFn: () => fetchCourseAttachments(courseId)?? [],
         enabled: !!courseId && !!chapterId,
     });
 
-    const { data: nextChapter } = useQuery({
+    const { data: chapterAttachments, error: chapterAttachmentsError } = useQuery({
+        queryKey: ["attachments", courseId, chapterId],
+        queryFn: () => fetchChapterAttachments(courseId, chapterId) ?? [],
+        enabled: !!courseId && !!chapterId,
+    });
+
+    const { data: assignments, error: assignmentsError } = useQuery({
+        queryKey: ["assignments", courseId, chapterId],
+        queryFn: () => fetchAssignments(courseId, chapterId) ?? [],
+        enabled: !!courseId && !!chapterId,
+    });
+
+    const { data: nextChapter, error: nextChapterError } = useQuery({
         queryKey: ["nextChapter", courseId, chapterId],
         queryFn: () => fetchNextChapter(courseId, chapterId),
         enabled: !!courseId && !!chapterId,
     });
 
-    const { data: enrollment } = useQuery({
-        queryKey: ["enrollment", courseId],
-        queryFn: () => fetchEnrollment(courseId),
-        enabled: !!courseId,
-    });
-
-    const { data: courseAttachments } = useQuery({
-        queryKey: ["course-attachments", courseId],
-        queryFn: () => fetchCourseAttachments(courseId),
-        enabled: !!courseId && !!chapterId,
-    });
-
-    const { data: chapterAttachments } = useQuery({
-        queryKey: ["attachments", courseId, chapterId],
-        queryFn: () => fetchChapterAttachments(courseId, chapterId),
-        enabled: !!courseId && !!chapterId,
-    });
-
-    const { data: assignments } = useQuery({
-        queryKey: ["assignments", courseId, chapterId],
-        queryFn: () => fetchAssignments(courseId, chapterId),
-        enabled: !!courseId && !!chapterId,
-    });
-
     if (isLoadingChapter) return <ChapterSkeleton />;
-    if (chapterError) return <ErrorPage/>;
+
+    const hasError = [
+        chapterError,
+        enrollmentError,
+        courseAttachmentsError,
+        chapterAttachmentsError,
+        assignmentsError,
+        userProgressError,
+        nextChapterError,
+    ].some(Boolean);
+
+    if (hasError) return <ErrorPage />;
 
     const isLocked = !chapter?.isFree;
     const hasAttachedVideo = chapter?.videoUrl !== undefined;
@@ -160,7 +177,7 @@ const ChapterIdPage = ({
                                 <CourseProgressButton
                                     chapterId={chapterId}
                                     courseId={courseId}
-                                    nextChapterId={nextChapter?.id}
+                                    nextChapter={nextChapter}
                                     isCompleted={!!userProgress?.isCompleted}
                                 />
                             ) : (
@@ -170,7 +187,7 @@ const ChapterIdPage = ({
                             )}
                         </div>
                         <Separator />
-                        <div className="p-4">
+                        <div className="px-4">
                             <Preview value={chapter.description!}/>
                         </div>
                         {enrollment && !!assignments?.length && (

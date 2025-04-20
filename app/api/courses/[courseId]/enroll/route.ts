@@ -1,81 +1,68 @@
 ﻿import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {NextResponse} from "next/server";
+import {fetchWithAuth} from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
-export async function GET(
-    req: Request,
-    { params }: { params: { courseId: string; } }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string }> }) {
     try {
+        const {courseId} = await params;
+
+        if (!courseId) {
+            console.warn("[COURSE_ENROLLMENT] GET: Missing courseId in params");
+            return NextResponse.json({ enrollment: null }, { status: 400 });
+        }
+
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
 
-        const { courseId } = await params;
-
-        if (!token || !userId) {
-            console.error("PATCH: No token or userId found");
-            return new NextResponse("Unauthorized", { status: 401 });
+        if (!token) {
+            console.error("[COURSE_ENROLLMENT] GET: No token found");
+            return NextResponse.json({ enrollment: null }, { status: 401 });
         }
 
-        const queryParams = new URLSearchParams({userId});
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/enroll?${queryParams.toString()}`, {
+        const { data, status } = await fetchWithAuth({
             method: "GET",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            }
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/enrollments`,
         });
 
-        if (!apiResponse.ok) {
-            const errorMessage = await apiResponse.text();
-            console.error("API Error:", errorMessage);
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
+        if (!data) {
+            return new NextResponse(null, { status: 204 });
         }
 
-        const course = await apiResponse.json();
-        return NextResponse.json(course);
+        return NextResponse.json({ enrollment: data }, { status });
     } catch (e) {
-        console.error("[COURSE_PUBLISH]", e);
+        console.error("[COURSE_ENROLLMENT] GET:", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
 
-export async function PATCH(
-    req: Request,
-    { params }: { params: { courseId: string; } }
-) {
+export async function POST(_req: Request, { params }: { params: Promise<{ courseId: string }> }) {
     try {
+        const {courseId} = await params;
+
+        if (!courseId) {
+            console.warn("[COURSE_ENROLLMENT] POST: Missing courseId in params");
+            return NextResponse.json({ enrollment: null }, { status: 400 });
+        }
+
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
 
-        const { courseId } = await params;
-
-        if (!token || !userId) {
-            console.error("PATCH: No token or userId found");
-            return new NextResponse("Unauthorized", { status: 401 });
+        if (!token) {
+            console.error("[COURSE_ENROLLMENT] POST: No token found");
+            return NextResponse.json({ enrollment: null }, { status: 401 });
         }
 
-        const queryParams = new URLSearchParams({userId});
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/enroll?${queryParams.toString()}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            }
+        const { data, status } = await fetchWithAuth({
+            method: "POST",
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/enrollments`,
         });
 
-        if (!apiResponse.ok) {
-            const errorMessage = await apiResponse.text();
-            console.error("API Error:", errorMessage);
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        const course = await apiResponse.json();
-        return NextResponse.json(course);
+        return NextResponse.json({ enrollment: data }, { status });
     } catch (e) {
-        console.error("[COURSE_PUBLISH]", e);
+        console.error("[COURSE_ENROLLMENT] POST:", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

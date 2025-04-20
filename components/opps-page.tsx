@@ -10,8 +10,8 @@ export const ErrorPage = () => {
             <Image
                 src={OppsPageImageSrc}
                 alt="Сторінка недоступна"
-                width={400}
                 height={300}
+                priority
                 className="max-w-full h-auto self-center"
             />
             <div className="text-center mt-10">
@@ -22,4 +22,4 @@ export const ErrorPage = () => {
             </div>
         </div>
     );
-}
+};

@@ -1,15 +1,13 @@
-﻿"use client"
-
-import { useEditor, EditorContent } from "@tiptap/react";
+﻿import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import TaskItem from '@tiptap/extension-task-item'
-import TaskList from '@tiptap/extension-task-list'
-import {TableCell} from "@tiptap/extension-table-cell";
-import {Table} from "@tiptap/extension-table";
-import {TableHeader} from "@tiptap/extension-table-header";
-import {TableRow} from "@tiptap/extension-table-row";
-import {FontFamily} from "@tiptap/extension-font-family";
-import {Color} from "@tiptap/extension-color";
+import TaskItem from '@tiptap/extension-task-item';
+import TaskList from '@tiptap/extension-task-list';
+import { TableCell } from "@tiptap/extension-table-cell";
+import { Table } from "@tiptap/extension-table";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TableRow } from "@tiptap/extension-table-row";
+import { FontFamily } from "@tiptap/extension-font-family";
+import { Color } from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
 import TextStyle from '@tiptap/extension-text-style';
 import Image from '@tiptap/extension-image';
@@ -19,7 +17,7 @@ import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import Code from '@tiptap/extension-code';
 
-import {useEditorStore} from "@/components/editor/store/use-editor-store";
+import { useEditorStore } from "@/components/editor/store/use-editor-store";
 
 interface EditorProps {
     onChangeAction: (value: string) => void;
@@ -27,33 +25,18 @@ interface EditorProps {
 }
 
 export const Editor = ({ onChangeAction, value }: EditorProps) => {
-    const {setEditor} = useEditorStore();
+    const { setEditor } = useEditorStore();
 
     const editor = useEditor({
-        onCreate({editor}){
-            setEditor(editor)
+        onCreate({ editor }) {
+            setEditor(editor);
         },
         onDestroy() {
-            setEditor(null)
+            setEditor(null);
         },
         onUpdate({ editor }) {
             setEditor(editor);
             onChangeAction(editor.getHTML());
-        },
-        onSelectionUpdate({editor}){
-            setEditor(editor)
-        },
-        onTransaction({editor}){
-            setEditor(editor)
-        },
-        onFocus({editor}){
-            setEditor(editor)
-        },
-        onBlur({editor}){
-            setEditor(editor)
-        },
-        onContentError({editor}){
-            setEditor(editor)
         },
         editorProps: {
             attributes: {
@@ -62,9 +45,7 @@ export const Editor = ({ onChangeAction, value }: EditorProps) => {
         },
         extensions: [
             StarterKit,
-            TaskItem.configure({
-                nested: true,
-            }),
+            TaskItem.configure({ nested: true }),
             TaskList,
             Table,
             TableCell,
@@ -74,9 +55,7 @@ export const Editor = ({ onChangeAction, value }: EditorProps) => {
             ImageResize,
             Underline,
             FontFamily,
-            TextAlign.configure({
-                types: ['heading', 'paragraph'],
-            }),
+            TextAlign.configure({ types: ['heading', 'paragraph'] }),
             TextStyle.configure({ mergeNestedSpanStyles: true }),
             Color,
             Code,
@@ -89,6 +68,7 @@ export const Editor = ({ onChangeAction, value }: EditorProps) => {
             })
         ],
         content: value,
+        immediatelyRender: false
     });
 
     return (

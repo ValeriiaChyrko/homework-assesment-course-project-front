@@ -1,8 +1,8 @@
 ﻿import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {fetchWithAuth} from "@/lib/fetchWithAuth";
 import {UTApi} from "uploadthing/server";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, attachmentId: string, attachmentKey: string }> }) {
     try {

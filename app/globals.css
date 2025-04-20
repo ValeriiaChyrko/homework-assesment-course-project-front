@@ -28,7 +28,7 @@ body,
 
   /* Акцентні кольори */
   --accent: #FF55BB;
-  --accent-light: #B6EAFA;
+  --accent-light: #C6E7FF;
   --accent-dark: #FFD3A3;
 
   /* Фон */
@@ -120,7 +120,7 @@ body,
 }
 
 .text-primary-foreground {
-  color: var(--primary-foreground);
+  color: var(--text-light);
 }
 
 .hover\:bg-primary\/90:hover {
@@ -132,7 +132,7 @@ body,
 }
 
 .hover\:bg-accent-light:hover {
-  background-color: var(--accent-light);
+  background-color: #9FB3DF;
 }
 
 .hover\:text-accent-foreground:hover {

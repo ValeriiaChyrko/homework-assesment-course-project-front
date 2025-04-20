@@ -1,24 +1,24 @@
 ﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 export async function PATCH(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId: string }> }) {
     try {
         const { courseId, chapterId, assignmentId } = await params;
 
         if (!courseId) {
-            console.warn("[ASSIGNMENT] PUBLISH: Missing courseId in params");
+            console.warn("[ASSIGNMENT] UNPUBLISH: Missing courseId in params");
             return NextResponse.json({ course: null }, { status: 400 });
         }
 
         if (!chapterId) {
-            console.warn("[ASSIGNMENT] PUBLISH: Missing chapterId in params");
+            console.warn("[ASSIGNMENT] UNPUBLISH: Missing chapterId in params");
             return NextResponse.json({ chapter: null }, { status: 400 });
         }
 
         if (!assignmentId) {
-            console.warn("[ASSIGNMENT] PUBLISH: Missing assignmentId in params");
+            console.warn("[ASSIGNMENT] UNPUBLISH: Missing assignmentId in params");
             return NextResponse.json({ assignment: null }, { status: 400 });
         }
 
@@ -33,12 +33,12 @@ export async function PATCH(_req: Request, { params }: { params: Promise<{ cours
         const { data, status } = await fetchWithAuth({
             method: "PATCH",
             token,
-            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/publish`,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/unpublish`,
         });
 
         return NextResponse.json({ assignment: data }, { status });
     } catch (e) {
-        console.error("[CHAPTER_ASSIGNMENT_PUBLISH]", e);
+        console.error("[CHAPTER_ASSIGNMENT_UNPUBLISH]", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

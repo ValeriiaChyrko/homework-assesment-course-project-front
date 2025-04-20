@@ -100,11 +100,7 @@ export const AssignmentTestCriteriaForm = ({ initialData, courseId, chapterId, a
     const attemptTestsEnabled = form.watch("attemptTestsSectionEnable");
     const attemptQualityEnabled = form.watch("attemptQualitySectionEnable");
 
-    useEffect(() => {
-        recalculateScores();
-    }, [weights, maxScore, attemptCompilationEnabled, attemptTestsEnabled, attemptQualityEnabled]);
-
-    const recalculateScores = () => {
+    const recalculateScores = useCallback(() => {
         const maxScore = form.getValues("maxScore");
 
         const sectionKeys = ["compilation", "tests", "quality"] as const;
@@ -127,7 +123,11 @@ export const AssignmentTestCriteriaForm = ({ initialData, courseId, chapterId, a
                 maxSectionScore
             );
         });
-    };
+    }, [form, weights]);
+
+    useEffect(() => {
+        recalculateScores();
+    }, [weights, maxScore, attemptCompilationEnabled, attemptTestsEnabled, attemptQualityEnabled, recalculateScores]);
 
     return(
         <div className="mt-6 bg-slate-50 rounded-lg shadow-lg border border-gray-200 p-6">

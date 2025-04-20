@@ -2,10 +2,10 @@
 
 declare module "next-auth" {
     interface Session {
+        user: DefaultSession["user"] & {
+            login?: string;
+        };
         accessToken?: string;
-        user: {
-            id: string | undefined;
-        } & DefaultSession["user"];
     }
 }
 
@@ -14,7 +14,8 @@ declare module "next-auth/jwt" {
         accessToken?: string;
         refreshToken?: string;
         expiresAt?: number;
-        userAttributes?: Record<string, string | number | boolean>;
+        avatar_url?: string;
+        login?: string;
     }
 }
 

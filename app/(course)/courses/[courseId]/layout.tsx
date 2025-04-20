@@ -9,7 +9,7 @@ import { ChapterSkeleton } from "./chapters/[chapterId]/_components/chapter-skel
 
 type CourseWithProgressWithCategory = Course & {
     chapters: (Chapter & {
-        userProgress: UserChapterProgress[] | null;
+        userProgress: UserChapterProgress | null;
     })[];
     progressCount: number | null;
     isEnrolled: boolean;

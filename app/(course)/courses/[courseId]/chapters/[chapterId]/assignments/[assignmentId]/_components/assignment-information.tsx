@@ -5,8 +5,6 @@ import {CalendarCheck, GithubIcon, StarIcon} from "lucide-react";
 import {Preview} from "@/components/editor/preview";
 import {format} from "date-fns";
 import {useSession} from "next-auth/react";
-import {useEffect, useState} from "react";
-import {jwtDecode} from "jwt-decode";
 
 interface AssignmentInformationProps {
     assignmentRepositoryUrl: string;
@@ -14,11 +12,6 @@ interface AssignmentInformationProps {
     deadline: Date;
     assignmentMaxScore: number;
     assignmentDescription: string;
-}
-
-interface AccessTokenData {
-    login: string;
-    avatar_url: string;
 }
 
 const AssignmentInformation = ({
@@ -30,22 +23,10 @@ const AssignmentInformation = ({
 }: AssignmentInformationProps) => {
     const formattedDeadline = format(new Date(deadline), "dd.MM.yyyy");
     const { data: session } = useSession();
-    const [userInfo, setUserInfo] = useState<AccessTokenData | null>(null);
 
-    useEffect(() => {
-        if (!session?.accessToken) return;
-
-        try {
-            const decodedToken: AccessTokenData = jwtDecode(session.accessToken);
-
-            setUserInfo({
-                login: decodedToken.login,
-                avatar_url: decodedToken.avatar_url,
-            });
-        } catch (error) {
-            console.error("Error decoding token:", error);
-        }
-    }, [session]);
+    if (!session?.user) {
+        return null;
+    }
 
     return (
         <div className="border bg-white border-gray-900/25 rounded-md m-4 p-4">
@@ -56,7 +37,7 @@ const AssignmentInformation = ({
                 <AssignmentInfoBlock
                     icon={GithubIcon}
                     title="https://github.com"
-                    subtitle={userInfo?.login ?? "UserName"}
+                    subtitle={session?.user.login ?? "UserName"}
                     url={assignmentRepositoryUrl}
                     variant="success"
                 />

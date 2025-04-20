@@ -1,7 +1,7 @@
-﻿import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { jwtDecode } from "jwt-decode";
+﻿import { jwtDecode } from "jwt-decode";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 interface AccessTokenData {
     groups: string[];
@@ -10,9 +10,8 @@ interface AccessTokenData {
 export async function GET() {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken;
-    const userId = session?.user?.id;
 
-    if (!userId || !token) {
+    if (!token) {
         return new NextResponse("Unauthorized", { status: 401 });
     }
 

@@ -1,44 +1,43 @@
 ﻿import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {NextResponse} from "next/server";
+import {fetchWithAuth} from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
-export async function GET(
-    req: Request,
-    { params }: { params: { courseId: string; chapterId: string } }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string }> }) {
     try {
-        const session = await getServerSession(authOptions);
-        const token = session?.accessToken;
-        const userId = session?.user?.id;
-
         const { courseId, chapterId } = await params;
 
-        if (!token || !userId) {
-            console.error("GET_CHAPTER: No token or userId found");
-            return {
-                chapter: null
-            };
+        if (!courseId) {
+            console.warn("[CHAPTER] GET NEXT: Missing courseId in params");
+            return NextResponse.json({ nextChapter: null }, { status: 400 });
         }
 
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}`, {
+        if (!chapterId) {
+            console.warn("[CHAPTER] GET NEXT: Missing courseId in params");
+            return NextResponse.json({ nextChapter: null }, { status: 400 });
+        }
+
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+
+        if (!token) {
+            console.error("[CHAPTER] GET NEXT: No token found");
+            return NextResponse.json({ nextChapter: null }, { status: 401 });
+        }
+
+        const { data, status } = await fetchWithAuth({
             method: "GET",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/next`,
         });
 
-        if (!apiResponse.ok) {
-            console.error("GET_CHAPTER: Failed to fetch chapter", apiResponse.status);
-            return NextResponse.json({
-                chapter: null
-            });
+        if (!data) {
+            return new NextResponse(null, { status: 204 });
         }
 
-        const chapter = await apiResponse.json();
-        return NextResponse.json(chapter);
+        return NextResponse.json({ nextChapter: data }, { status });
     } catch (e) {
-        console.error("[CHAPTER]", e);
+        console.error("[CHAPTER] GET NEXT: Unexpected error", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

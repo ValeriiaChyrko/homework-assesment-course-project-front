@@ -1,64 +1,58 @@
 ﻿import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {NextResponse} from "next/server";
-import {jwtDecode} from "jwt-decode";
+import {fetchWithAuth} from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
-interface AccessTokenData {
-    login: string;
-    avatar_url: string;
-}
-
-export async function PUT(
-    req: Request,
-    { params }: { params: { courseId: string; chapterId: string; assignmentId: string; attemptId: string } },
-) {
+export async function PUT(req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId: string, attemptId: string }> }) {
     try {
+        const {courseId, chapterId, assignmentId, attemptId} = await params;
+
+        if (!courseId) {
+            console.warn("[ATTEMPTS] SUBMIT: Missing courseId in params");
+            return NextResponse.json({ attempt: null }, { status: 400 });
+        }
+
+        if (!chapterId) {
+            console.warn("[ATTEMPTS] SUBMIT: Missing chapterId in params");
+            return NextResponse.json({ attempt: null }, { status: 400 });
+        }
+
+        if (!assignmentId) {
+            console.warn("[ATTEMPTS] SUBMIT: Missing assignmentId in params");
+            return NextResponse.json({ attempt: null }, { status: 400 });
+        }
+
+        if (!attemptId) {
+            console.warn("[ATTEMPTS] SUBMIT: Missing assignmentId in params");
+            return NextResponse.json({ attempt: null }, { status: 400 });
+        }
+
         const session = await getServerSession(authOptions);
         const token = session?.accessToken;
-        const userId = session?.user?.id;
 
-        const { courseId, chapterId, assignmentId, attemptId } = await params;
         const { attempt, assignment } = await req.json();
 
-        if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
-            return {
-                attempt: null
-            };
+        if (!token) {
+            console.error("[ATTEMPTS] SUBMIT: No token found");
+            return NextResponse.json({ attempt: null }, { status: 401 });
         }
 
-        if (!token || !userId) {
-            console.error("GET_COURSE: No token or userId found");
-            return {
-                attempt: null
-            };
-        }
-
-        const decodedToken: AccessTokenData = jwtDecode(token);
-
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts/${attemptId}/submit`, {
+        const { data, status } = await fetchWithAuth({
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                UserId: userId,
-                AuthorGitHubUsername: decodedToken.login,
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts/${attemptId}/submit`,
+            payload: {
+                AuthorGitHubUsername: session.user.login,
                 Attempt: {
                     ...attempt
                 },
                 Assignment: {
                     ...assignment
                 }
-            })
+            },
         });
 
-        if (!apiResponse.ok) {
-            return new NextResponse("Internal Server Error", { status: apiResponse.status });
-        }
-
-        return new NextResponse("OK", { status: 200 });
+        return NextResponse.json({ attempt: data }, { status });
     } catch (e) {
         console.error("[ASSIGNMENTS]", e);
         return new NextResponse("Internal Server Error", { status: 500 });

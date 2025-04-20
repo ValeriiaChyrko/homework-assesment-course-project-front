@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import {Check, ChevronDown, ChevronRight} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import {Separator} from "@/components/ui/separator";
 
 interface ComboboxProps {
     options: { label: string; value: string }[];
@@ -24,9 +25,9 @@ interface ComboboxProps {
 }
 
 const sizeClass = {
-    sm: "text-sm px-3 py-1",
-    md: "text-base px-4 py-2",
-    lg: "text-lg px-5 py-3",
+    sm: "text-sm md:max-w-xs",
+    md: "text-sm",
+    lg: "text-lg",
 };
 
 export function Combobox({
@@ -83,20 +84,30 @@ export function Combobox({
                     aria-haspopup="listbox"
                     aria-activedescendant={activeOption !== null ? `option-${activeOption}` : undefined}
                     className={cn(
-                        "w-full rounded-lg text-gray-700 bg-slate-50 border border-gray-300 focus:ring-2 justify-between",
+                        "w-full rounded-lg text-gray-700 bg-slate-50 border border-gray-300 focus:ring-2 justify-between truncate",
                         sizeClass[size]
                     )}
                 >
-                    {value ? options.find(option => option.value === value)?.label : "Оберіть опцію..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <span className="truncate max-w-[calc(100%-2.5rem)]">
+                        {value
+                            ? options.find(option => option.value === value)?.label
+                            : "Оберіть опцію..."}
+                    </span>
+
+                    <span className="flex items-center gap-3 pl-2">
+                        <Separator orientation="vertical" className="h-4 bg-gray-300" />
+                        {open
+                            ? <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                            : <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />}
+                    </span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[350px] p-2 mt-2 bg-slate-50 border border-gray-400">
+            <PopoverContent className="mt-2 bg-slate-50 border border-gray-300">
                 <Command>
                     <Input
                         placeholder="Знайти опцію..."
                         className={cn(
-                            "pl-9 rounded-full text-gray-700 bg-slate-50 border border-gray-300 focus:ring-2",
+                            "pl-6 rounded-lg text-gray-700 bg-slate-50 border border-gray-300 focus:ring-2",
                             sizeClass[size]
                         )}
                         value={search}
@@ -125,7 +136,7 @@ export function Combobox({
                                             resetCombobox();
                                         }}
                                         className={cn(
-                                            "text-gray-700 hover:text-sky-700 hover:bg-sky-100",
+                                            "mt-2 text-gray-700 hover:text-sky-700 hover:bg-sky-100",
                                             activeOption === index ? "bg-sky-50" : "",
                                             "transition-colors duration-200",
                                             sizeClass[size]

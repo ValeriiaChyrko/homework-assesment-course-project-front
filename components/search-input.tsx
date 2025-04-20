@@ -41,7 +41,7 @@ export const SearchInput = () => {
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 className={
-                    `w-full md:w-[400px] pl-9 rounded-full bg-slate-50 border 
+                    `w-full pl-9 rounded-lg bg-slate-50 border 
                     ${isFocused ? 'border-gray-900 text-slate-800' : 'border-gray-900/25 text-slate-600'} transition-all`
                 }
                 placeholder="Знайти курс за назвою..."

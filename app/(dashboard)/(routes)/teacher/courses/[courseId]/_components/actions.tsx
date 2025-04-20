@@ -45,8 +45,8 @@ export const Actions = ({
     }, [isPublished, courseId, confetti, queryClient]);
 
     const handleDelete = useCallback(async () => {
-        console.log("courseId", courseId);
         setIsLoading(true);
+
         try {
             await axios.delete(`/api/courses/${courseId}`);
 

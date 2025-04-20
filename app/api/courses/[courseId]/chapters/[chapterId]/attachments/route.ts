@@ -1,7 +1,7 @@
 ﻿import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId:string }> }) {
     try {
@@ -9,12 +9,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
 
         if (!courseId) {
             console.warn("[CHAPTER_ID_ATTACHMENTS] GET: Missing courseId in params");
-            return NextResponse.json({ attachment: null }, { status: 400 });
+            return NextResponse.json({ attachments: null }, { status: 400 });
         }
 
         if (!chapterId) {
             console.warn("[CHAPTER_ID_ATTACHMENTS] GET: Missing chapterId in params");
-            return NextResponse.json({ attachment: null }, { status: 400 });
+            return NextResponse.json({ attachments: null }, { status: 400 });
         }
 
         const session = await getServerSession(authOptions);
@@ -22,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
 
         if (!token) {
             console.warn("[CHAPTER_ID_ATTACHMENTS] GET: No access token");
-            return NextResponse.json({ attachment: null }, { status: 401 });
+            return NextResponse.json({ attachments: null }, { status: 401 });
         }
 
         const { data, status } = await fetchWithAuth({
@@ -31,10 +31,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
             url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/attachments`,
         });
 
-        return NextResponse.json({ attachment: data }, { status });
+        return NextResponse.json({ attachments: data }, { status });
     } catch (error) {
         console.error("[CHAPTER_ID_ATTACHMENTS] GET: Unexpected error", error);
-        return NextResponse.json({ attachment: null }, { status: 500 });
+        return NextResponse.json({ attachments: null }, { status: 500 });
     }
 }
 

@@ -1,14 +1,14 @@
 ﻿import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {NextResponse} from "next/server";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string }> }) {
     try {
         const { courseId } = await params;
 
         if (!courseId) {
-            console.warn("[CHAPTER] GET: Missing courseId in params");
+            console.warn("[CHAPTER] GET FIRST: Missing courseId in params");
             return NextResponse.json({ chapter: null }, { status: 400 });
         }
 
@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
         const token = session?.accessToken;
 
         if (!token) {
-            console.error("[CHAPTER] GET: No token found");
+            console.error("[CHAPTER] GET FIRST: No token found");
             return NextResponse.json({ chapter: null }, { status: 401 });
         }
 

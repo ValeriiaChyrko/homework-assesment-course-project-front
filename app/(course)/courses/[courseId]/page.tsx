@@ -16,7 +16,7 @@ const CourseIdPage = ({
         const getCourseFirstChapterId = async () => {
             try {
                 const response = await axios.get(`/api/courses/${courseId}/chapters/first`);
-                const chapter:Chapter = response.data;
+                const chapter:Chapter = response.data.chapter;
                 setChapterId(chapter.id);
             } catch (error) {
                 console.error("Error fetching courses:", error);

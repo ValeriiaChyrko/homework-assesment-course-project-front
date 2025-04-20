@@ -1,7 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {fetchWithAuth} from "@/lib/fetchWithAuth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string }> }) {
     try {
@@ -9,12 +9,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
 
         if (!courseId) {
             console.warn("[CHAPTER] GET: Missing courseId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ chapter: null }, { status: 400 });
         }
 
         if (!chapterId) {
             console.warn("[CHAPTER] GET: Missing chapterId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ chapter: null }, { status: 400 });
         }
 
         const session = await getServerSession(authOptions);
@@ -44,12 +44,12 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ cour
 
         if (!courseId) {
             console.warn("[COURSES_CHAPTER_ID_DELETE]: Missing courseId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ id: null }, { status: 400 });
         }
 
         if (!chapterId) {
             console.warn("[COURSES_CHAPTER_ID_DELETE]: Missing chapterId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ id: null }, { status: 400 });
         }
 
         const session = await getServerSession(authOptions);
@@ -57,7 +57,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ cour
 
         if (!token) {
             console.error("[COURSES_CHAPTER_ID_DELETE]: No token found");
-            return NextResponse.json({ chapter: null }, { status: 401 });
+            return NextResponse.json({ id: null }, { status: 401 });
         }
 
         const { data, status } = await fetchWithAuth({
@@ -79,12 +79,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ course
 
         if (!courseId) {
             console.warn("[COURSES_CHAPTER_ID_PATCH]: Missing courseId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ chapter: null }, { status: 400 });
         }
 
         if (!chapterId) {
             console.warn("[COURSES_CHAPTER_ID_PATCH]: Missing chapterId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ chapter: null }, { status: 400 });
         }
 
         const session = await getServerSession(authOptions);

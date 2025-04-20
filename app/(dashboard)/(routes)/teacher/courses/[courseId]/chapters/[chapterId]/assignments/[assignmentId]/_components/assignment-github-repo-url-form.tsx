@@ -63,7 +63,6 @@ export const AssignmentGithubRepoUrlForm= ({ initialData, courseId, chapterId, a
     const { isSubmitting, isValid } = form.formState;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log("BUTTON CLICKED");
         try {
             await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`, values);
             await queryClient.invalidateQueries({ queryKey: ["assignment", courseId, chapterId, assignmentId] });

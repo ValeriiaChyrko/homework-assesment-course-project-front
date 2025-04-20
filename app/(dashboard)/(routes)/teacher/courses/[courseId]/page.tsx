@@ -40,6 +40,7 @@ const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => 
     const { data: categories = [], error: categoriesError, isLoading: isLoadingCategories } = useQuery({
         queryKey: ["categories"],
         queryFn: fetchCategories,
+        enabled: !!courseId,
     });
 
     if (isLoadingCourse) return <EditCourseSkeleton/>;
@@ -50,7 +51,7 @@ const CourseIdPage = ({ params }: { params: Promise<{ courseId: string }> }) => 
         !!course.title,
         !!course.description,
         !!course.imageUrl,
-        !!course.category.id,
+        !!course.category?.id,
         course.chapters?.length > 0 && course.chapters.some((chapter: Chapter) => chapter.isPublished),
     ];
 

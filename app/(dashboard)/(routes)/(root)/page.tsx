@@ -21,6 +21,7 @@ interface CoursesProgressResponse {
 
 const fetchCoursesWithProgress = async (): Promise<CoursesProgressResponse> => {
     const response = await axios.get('/api/courses/progress');
+
     return response.data;
 };
 

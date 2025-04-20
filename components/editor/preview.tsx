@@ -57,6 +57,7 @@ export const Preview = ({ value, className }: PreviewProps) => {
         ],
         content: value,
         editable: false,
+        immediatelyRender: false
     });
 
     return (

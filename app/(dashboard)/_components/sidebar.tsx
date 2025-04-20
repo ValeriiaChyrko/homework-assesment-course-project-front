@@ -11,7 +11,7 @@ export const Sidebar = () => {
     return (
         <div className={cn(
             "h-full w-full border-r flex-col overflow-y-auto shadow-sm",
-            theme === "dark" ? "border-gray-50 transition-colors duration-300" : "border-gray-900/25"
+            theme === "dark" ? "bg-slate-900 border-gray-50 transition-colors duration-300" : "bg-white border-gray-900/25"
         )}>
             <div className="px-8 py-1">
                 <Logo />

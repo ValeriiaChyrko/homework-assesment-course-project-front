@@ -557,24 +557,24 @@ export const Toolbar = () => {
         {sections[0].map((section) => (
                 <ToolbarButton key={section.label} {...section} />
             ))}
-            <Separator orientation="vertical" className="ml-1 h-6 bg-slate-400" />
+            <Separator orientation="vertical" className="ml-1 h-6" />
             <FontFamilyButton/>
-            <Separator orientation="vertical" className="ml-1 h-6 bg-slate-400" />
+            <Separator orientation="vertical" className="ml-1 h-6" />
             <HeadingLevelButton/>
-            <Separator orientation="vertical" className="ml-1 h-6 bg-slate-400" />
+            <Separator orientation="vertical" className="ml-1 h-6" />
             {sections[1].map((section) => (
                 <ToolbarButton key={section.label} {...section} />
             ))}
-            <Separator orientation="vertical" className="ml-1 h-6 bg-slate-400" />
+            <Separator orientation="vertical" className="ml-1 h-6" />
             <TextColorButton/>
             <HighlightColorButton/>
-            <Separator orientation="vertical" className="ml-1 h-6 bg-slate-400" />
+            <Separator orientation="vertical" className="ml-1 h-6" />
             <LinkButton/>
             <ImageButton/>
-            <Separator orientation="vertical" className="ml-1 h-6 bg-slate-400" />
+            <Separator orientation="vertical" className="ml-1 h-6" />
             <AlignTextButton/>
             <LineListButton/>
-            <Separator orientation="vertical" className="ml-1 h-6 bg-slate-400" />
+            <Separator orientation="vertical" className="ml-1 h-6" />
             {sections[2].map((section) => (
                 <ToolbarButton key={section.label} {...section} />
             ))}

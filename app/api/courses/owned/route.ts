@@ -1,7 +1,7 @@
-﻿import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
+﻿import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 type CourseWithCategory = Course & {
     category: Category | null;

@@ -1,45 +1,48 @@
 ﻿import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {NextResponse} from "next/server";
+import {fetchWithAuth} from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
-export async function GET(
-    req: Request,
-    { params }: { params: { courseId: string; chapterId: string; assignmentId: string } }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId: string }> }) {
     try {
-        const session = await getServerSession(authOptions);
-        const token = session?.accessToken;
-        const userId = session?.user?.id;
-
         const { courseId, chapterId, assignmentId } = await params;
 
-        if (!token || !userId) {
-            console.error("GET_ASSIGNMENT: No token or userId found");
-            return {
-                attempts: []
-            };
+        if (!courseId) {
+            console.warn("[ATTEMPT PROGRESS] GET: Missing courseId in params");
+            return NextResponse.json({ course: null }, { status: 400 });
         }
 
-        const queryParams = new URLSearchParams({userId});
-        const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts/progress?${queryParams.toString()}`, {
+        if (!chapterId) {
+            console.warn("[ATTEMPT PROGRESS] GET: Missing chapterId in params");
+            return NextResponse.json({ chapter: null }, { status: 400 });
+        }
+
+        if (!assignmentId) {
+            console.warn("[ATTEMPT PROGRESS] GET: Missing assignmentId in params");
+            return NextResponse.json({ assignment: null }, { status: 400 });
+        }
+
+        const session = await getServerSession(authOptions);
+        const token = session?.accessToken;
+
+        if (!token) {
+            console.error("[ATTEMPT PROGRESS] GET: No token found");
+            return NextResponse.json({ assignment: null });
+        }
+
+        const { data, status } = await fetchWithAuth({
             method: "GET",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${token}`,
-            },
+            token,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts/progress`,
         });
 
-        if (!apiResponse.ok) {
-            console.error("GET_ASSIGNMENT: Failed to fetch courses", apiResponse.status);
-            return NextResponse.json({
-                attempts: []
-            });
+        if (!data) {
+            return new NextResponse(null, { status: 204 });
         }
 
-        const attempts:Attempt[] = await apiResponse.json();
-        return NextResponse.json(attempts);
+        return NextResponse.json({ userProgress: data }, { status });
     } catch (e) {
-        console.error("[ASSIGNMENT]", e);
+        console.error("[ATTEMPT PROGRESS] GET:", e);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

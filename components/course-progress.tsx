@@ -23,7 +23,7 @@ export const CourseProgress = ({
 } : CourseProgressProps) => {
     return (
         <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
                 <p className={cn(
                     "font-medium text-sky-700",
                     colorByVariant[variant],

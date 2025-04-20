@@ -12,20 +12,27 @@ import { ArrowLeft } from "lucide-react";
 import {
     AssignmentSkeleton
 } from "@/app/(course)/courses/[courseId]/chapters/[chapterId]/assignments/[assignmentId]/_components/assignment-skeleton";
+import {ErrorPage} from "@/components/opps-page";
 
 const fetchAssignment = async (courseId: string, chapterId: string, assignmentId: string): Promise<Assignment | null> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}`);
-    return response.data;
+    if (response.status === 204) return null;
+
+    return response.data.assignment ?? null;
 };
 
 const fetchAllUserAttempts = async (courseId: string, chapterId: string, assignmentId: string): Promise<Attempt[] | null> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts`);
-    return response.data;
+    if (response.status === 204) return null;
+
+    return response.data.attempts ?? null;
 };
 
 const fetchUserAttemptProgress = async (courseId: string, chapterId: string, assignmentId: string): Promise<UserAssignmentProgress | null> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts/progress`);
-    return response.data;
+    if (response.status === 204) return null;
+
+    return response.data.userProgress ?? null;
 };
 
 const AssignmentIdPage = ({
@@ -37,27 +44,35 @@ const AssignmentIdPage = ({
     const chapterId = React.use(params).chapterId;
     const assignmentId = React.use(params).assignmentId;
 
-    const { data: assignment, isLoading: isLoadingAssignment } = useQuery({
+    const { data: assignment, error: assignmentError, isLoading: isLoadingAssignment } = useQuery({
         queryKey: ["assignment", courseId, chapterId, assignmentId],
         queryFn: () => fetchAssignment(courseId, chapterId, assignmentId),
         enabled: !!courseId && !!chapterId && !!assignmentId,
     });
 
-    const { data: attempts } = useQuery({
+    const { data: attempts, error: attemptsError } = useQuery({
         queryKey: ["attempts", courseId, chapterId, assignmentId],
-        queryFn: () => fetchAllUserAttempts(courseId, chapterId, assignmentId),
+        queryFn: () => fetchAllUserAttempts(courseId, chapterId, assignmentId) ?? [],
         enabled: !!courseId && !!chapterId && !!assignmentId,
     });
 
     const lastAttempt: Attempt | null = attempts?.length ? attempts[0] : null;
 
-    const { data: progress } = useQuery({
+    const { data: progress, error: progressError } = useQuery({
         queryKey: ["attemptProgress", courseId, chapterId, assignmentId],
         queryFn: () => fetchUserAttemptProgress(courseId, chapterId, assignmentId),
         enabled: !!courseId && !!chapterId && !!assignmentId,
     });
 
     if (isLoadingAssignment || !assignment) return <AssignmentSkeleton />;
+
+    const hasError = [
+        assignmentError,
+        attemptsError,
+        progressError
+    ].some(Boolean);
+
+    if (hasError) return <ErrorPage />;
 
     const isLocked = !assignment ||
         new Date() > new Date(assignment.deadline) ||

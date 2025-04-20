@@ -16,13 +16,14 @@ interface AssignmentInformationProps {
     isLocked: boolean;
 }
 
-const fetchAllUserBranches = async (courseId: string, chapterId: string, attemptId: string, assignment: Assignment): Promise<string[] | []> => {
-    console.log("fetchAllUserBranches", courseId, chapterId, attemptId);
+const fetchAllUserBranches = async (courseId: string, chapterId: string, attemptId: string, assignment: Assignment): Promise<string[] | null> => {
     const response = await axios.post(
         `/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignment.id}/attempts/${attemptId}/branches`,
         { assignment }
     );
-    return response.data;
+    if (response.status === 204) return null;
+
+    return response.data.branches ?? null;
 };
 
 const AssignmentInformation = ({
@@ -37,7 +38,7 @@ const AssignmentInformation = ({
 
     const { data: branches, isFetching, refetch } = useQuery({
         queryKey: ["branches", courseId, chapterId, assignment.id, attempt.id],
-        queryFn: () => fetchAllUserBranches(courseId, chapterId, attempt.id, assignment),
+        queryFn: () => fetchAllUserBranches(courseId, chapterId, attempt.id, assignment) ?? [],
         enabled: !!courseId && !!chapterId && !!assignment.id && !!attempt.id && !isLocked,
         refetchInterval: () => (isLocked ? 180000 : false),
     });

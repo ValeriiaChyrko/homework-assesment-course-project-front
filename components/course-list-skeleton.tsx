@@ -1,41 +1,36 @@
-﻿import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+﻿import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ImageIcon } from "lucide-react";
 
 export const CoursesListSkeleton = () => {
     return (
-        <>
-            <div className="border border-gray-900/25 rounded-lg">
-                <div className="relative w-full h-18">
-                    <Skeleton className="w-full h-full" />
-                </div>
-            </div>
-            <div className="grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4">
-                {new Array(6).fill(null).map((_, i) => (
-                    <Card key={i} className="group hover:shadow-lg transition overflow-hidden border border-gray-900/25 rounded-lg">
-                        <CardHeader className="relative">
-                            <CardTitle>
-                                <div className="relative w-full h-48">
-                                    <Skeleton className="w-full h-full" />
-                                    <ImageIcon className="absolute inset-0 m-auto text-gray-400 w-12 h-12" />
-                                </div>
-                            </CardTitle>
-                        </CardHeader>
+        <div className="flex flex-col gap-4">
+            {new Array(6).fill(null).map((_, i) => (
+                <Card key={i} className="flex flex-col md:!flex-row overflow-hidden rounded-3xl shadow-lg border border-gray-200">
+                    {/* LEFT: Image & badge placeholder */}
+                    <div className="relative md:w-1/3 min-w-[250px] flex flex-col justify-between p-6">
+                        <div className="relative w-full aspect-video">
+                            <Skeleton className="w-full h-full rounded-3xl" />
+                            <div className="absolute -bottom-3 -right-3 h-6 w-20 rounded-3xl bg-gray-100" />
+                        </div>
 
-                        <CardContent>
-                            <Skeleton className="mt-2 h-5 rounded w-3/4" />
-                            <Skeleton className="mt-2 h-4 rounded w-5/6" />
-                        </CardContent>
+                        <div className="p-2 mt-6">
+                            <Skeleton className="h-10 w-full rounded-md" />
+                        </div>
+                    </div>
 
-                        <CardFooter>
-                            <Button variant="secondary" disabled className="w-full">
-                                <Skeleton className="h-8 w-full px-6" />
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
-            </div>
-        </>
+                    {/* RIGHT: Text & progress placeholders */}
+                    <div className="flex flex-col justify-between p-6 pb-2 md:w-2/3">
+                        <div>
+                            <Skeleton className="h-6 w-1/2 mb-4" />
+                            <Skeleton className="h-4 w-full mb-2" />
+                            <Skeleton className="h-4 w-11/12 mb-2" />
+                            <Skeleton className="h-4 w-9/12 mb-4" />
+
+                            <Skeleton className="h-4 w-1/4" />
+                        </div>
+                    </div>
+                </Card>
+            ))}
+        </div>
     );
 };

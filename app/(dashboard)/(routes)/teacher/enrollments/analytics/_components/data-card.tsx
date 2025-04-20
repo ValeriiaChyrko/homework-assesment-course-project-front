@@ -13,7 +13,7 @@ export const DataCard = ({
 }: DataCardProps) => {
     return (
         <Card className="border border-gray-200 rounded-xl p-4 bg-white block">
-        <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-semibold text-gray-700 flex items-center space-x-4">
                     <Icon className="h-8 w-8 opacity-90 text-gray-700/80" />
                     <span>{label}</span>

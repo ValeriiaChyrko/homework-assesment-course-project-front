@@ -1,7 +1,7 @@
 ﻿import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 type CourseWithProgressWithCategory = Course & {
     category: Category | null;
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
         const queryParams = new URLSearchParams([
             ["Include", "category"],
             ["Include", "chapters"],
-            ["Include", "progress"],
+            ["Include", "student-progress"],
             ["IsPublished", "true"],
             ["Title", title || ""],
             ["CategoryId", categoryId || ""],

@@ -20,7 +20,6 @@ import {ErrorPage} from "@/components/opps-page";
 
 const fetchChapter = async (courseId: string, chapterId: string): Promise<Chapter> => {
     const response = await axios.get(`/api/courses/${courseId}/chapters/${chapterId}`);
-    console.log("Fetched chapter:", response.data.chapter);
     return response.data.chapter;
 };
 
@@ -37,9 +36,6 @@ const ChapterIdPage = ({ params }: { params: Promise<{ courseId: string, chapter
     if (isLoading) return <EditChapterSkeleton />;
     if (chapterError) return <ErrorPage />;
     if (!chapter) return null;
-
-    // Виводимо chapter в консоль, коли він успішно отриманий
-    console.log("chapter", chapter);
 
     const requiredFields = [
         !!chapter.title,

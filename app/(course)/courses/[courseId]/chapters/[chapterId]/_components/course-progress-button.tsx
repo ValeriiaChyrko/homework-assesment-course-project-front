@@ -13,14 +13,14 @@ interface CourseProgressButtonProps {
     chapterId: string;
     courseId: string;
     isCompleted?: boolean;
-    nextChapterId?: string;
+    nextChapter?: Chapter | null;
 }
 
 export const CourseProgressButton = ({
                                          chapterId,
                                          courseId,
                                          isCompleted,
-                                         nextChapterId,
+                                         nextChapter,
                                      }: CourseProgressButtonProps) => {
     const router = useRouter();
     const confetti = useConfettiStore();
@@ -38,12 +38,12 @@ export const CourseProgressButton = ({
             await queryClient.invalidateQueries({ queryKey: ["userProgress", courseId, chapterId] });
             await queryClient.invalidateQueries({ queryKey: ["courseWithProgress", courseId] });
 
-            if (!isCompleted && !nextChapterId) {
+            if (!isCompleted && !nextChapter) {
                 confetti.onOpen();
             }
 
-            if (!isCompleted && nextChapterId) {
-                router.push(`/courses/${courseId}/chapters/${nextChapterId}`);
+            if (!isCompleted && nextChapter?.id) {
+                router.push(`/courses/${courseId}/chapters/${nextChapter.id}`);
             }
 
             toast.success("Прогрес оновлено успішно.");

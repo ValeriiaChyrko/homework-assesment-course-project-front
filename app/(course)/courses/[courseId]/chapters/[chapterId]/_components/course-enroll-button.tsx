@@ -22,7 +22,7 @@ export const CourseEnrollButton = ({
         try {
             setIsLoading(true);
 
-            await axios.patch(`/api/courses/${courseId}/enroll`, courseId);
+            await axios.post(`/api/courses/${courseId}/enroll`, courseId);
             await queryClient.invalidateQueries({ queryKey: ["enrollment", courseId] });
             await queryClient.invalidateQueries({ queryKey: ["courseWithProgress", courseId] });
 

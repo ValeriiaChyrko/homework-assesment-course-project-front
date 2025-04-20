@@ -1,7 +1,7 @@
-﻿import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getServerSession } from "next-auth";
+﻿import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Login from "@/app/(auth)/_components/login";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 const signingErrors: Record<string | "default", string> = {
     // ...

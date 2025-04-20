@@ -1,5 +1,9 @@
-﻿import {NavbarRoutes} from "@/components/navbar-routes";
+﻿"use client";
+
+import {NavbarRoutes} from "@/components/navbar-routes";
 import CourseMobileSidebar from "@/app/(course)/courses/[courseId]/_components/course-mobile-sidebar";
+import {cn} from "@/lib/utils";
+import {useTheme} from "next-themes";
 
 interface CourseNavbarProps {
     course: Course & {
@@ -15,8 +19,13 @@ const CourseNavbar = ({
     course,
     progressCount,
 }: CourseNavbarProps) => {
+    const { theme } = useTheme();
+
     return(
-        <div className="p-4 border-b border-gray-900/25 h-full flex items-center shadow-sm transition-colors duration-300">
+        <div className={cn(
+            "p-4 border-b h-full flex items-center shadow-sm",
+            theme === "dark" ? "bg-slate-900 border-gray-50 transition-colors duration-300 " : "bg-white border-gray-900/25 "
+        )}>
             <CourseMobileSidebar
                 course={course}
                 progressCount={progressCount}

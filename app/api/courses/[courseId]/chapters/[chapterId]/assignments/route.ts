@@ -1,7 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string }> }) {
     try {
@@ -9,12 +9,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
 
         if (!courseId) {
             console.warn("[ASSIGNMENTS] GET: Missing courseId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ assignments: null }, { status: 400 });
         }
 
         if (!chapterId) {
             console.warn("[ASSIGNMENTS] GET: Missing chapterId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ assignments: null }, { status: 400 });
         }
 
         const session = await getServerSession(authOptions);
@@ -22,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
 
         if (!token) {
             console.warn("[ASSIGNMENTS] GET: No access token");
-            return NextResponse.json({ chapter: null }, { status: 401 });
+            return NextResponse.json({ assignments: null }, { status: 401 });
         }
 
         const { data, status } = await fetchWithAuth({
@@ -31,7 +31,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
             url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments`,
         });
 
-        return NextResponse.json(data, { status });
+        return NextResponse.json({ assignments: data }, { status });
     } catch (error) {
         console.error("[ASSIGNMENTS] GET: Unexpected error", error);
         return NextResponse.json({ chapter: null }, { status: 500 });
@@ -47,12 +47,12 @@ export async function POST(
 
         if (!courseId) {
             console.warn("[ASSIGNMENTS] POST: Missing courseId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ assignments: null }, { status: 400 });
         }
 
         if (!chapterId) {
             console.warn("[ASSIGNMENTS] POST: Missing chapterId in params");
-            return NextResponse.json({ course: null }, { status: 400 });
+            return NextResponse.json({ assignments: null }, { status: 400 });
         }
 
         const session = await getServerSession(authOptions);
@@ -60,7 +60,7 @@ export async function POST(
 
         if (!token) {
             console.warn("[ASSIGNMENTS] POST: No access token or userId");
-            return NextResponse.json({ chapter: null }, { status: 401 });
+            return NextResponse.json({ assignments: null }, { status: 401 });
         }
 
         const { title } = await req.json();
@@ -74,7 +74,7 @@ export async function POST(
             },
         });
 
-        return NextResponse.json(data, { status });
+        return NextResponse.json({ assignment: data }, { status });
     } catch (error) {
         console.error("[ASSIGNMENTS] POST: Unexpected error", error);
         return NextResponse.json({ chapter: null }, { status: 500 });
