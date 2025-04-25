@@ -42,7 +42,7 @@ const AssignmentHeader = ({
                     : `/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignment.id}/attempts/${attempt?.id}/${action}`;
 
             if (action === "create") {
-                await axios.post(url);
+                await axios.post(url, { assignment });
             } else {
                 await axios.patch(url);
             }

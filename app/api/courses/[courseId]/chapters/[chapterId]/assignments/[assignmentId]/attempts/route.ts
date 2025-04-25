@@ -43,7 +43,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ courseI
     }
 }
 
-export async function POST(_req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId: string }> }) {
+export async function POST(req: Request, { params }: { params: Promise<{ courseId: string, chapterId: string, assignmentId: string }> }) {
     try {
         const {courseId, chapterId, assignmentId} = await params;
 
@@ -70,10 +70,18 @@ export async function POST(_req: Request, { params }: { params: Promise<{ course
             return NextResponse.json({ attempt: null }, { status: 401 });
         }
 
+        const { assignment } = await req.json();
+
         const { data, status } = await fetchWithAuth({
             method: "POST",
             token,
             url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts`,
+            payload: {
+                repoTitle: assignment.repositoryName,
+                baseBranch: "main",
+                ownerGitHubUsername: assignment.repositoryOwner,
+                authorGitHubUsername: session.user.github_login,
+            },
         });
 
         return NextResponse.json({ attempt: data }, { status });

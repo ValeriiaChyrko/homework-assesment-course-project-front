@@ -8,7 +8,7 @@ export const ourFileRouter = {
         .onUploadComplete(() => {}),
     courseAttachment: f(["text", "image", "video", "audio", "pdf"])
         .onUploadComplete(() => {}),
-    chapterVideo: f({video: {maxFileSize: "4GB", maxFileCount:1}})
+    chapterVideo: f({video: {maxFileSize: "8GB", maxFileCount:1}})
         .onUploadComplete(() => {}),
 } satisfies FileRouter;
 

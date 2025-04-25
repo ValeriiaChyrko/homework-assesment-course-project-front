@@ -28,6 +28,8 @@ const AssignmentInformation = ({
         return null;
     }
 
+    console.log("USER", session.user);
+
     return (
         <div className="border bg-white border-gray-900/25 rounded-md m-4 p-4">
             <h2 className="text-lg font-semibold mb-2 p-2">
@@ -37,7 +39,7 @@ const AssignmentInformation = ({
                 <AssignmentInfoBlock
                     icon={GithubIcon}
                     title="https://github.com"
-                    subtitle={session?.user.login ?? "UserName"}
+                    subtitle={session?.user.github_login ?? "UserName"}
                     url={assignmentRepositoryUrl}
                     variant="success"
                 />

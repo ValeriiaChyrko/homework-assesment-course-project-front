@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { ProgressButton } from "@/components/progress-button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {Button} from "@/components/ui/button";
+import {useSession} from "next-auth/react";
 
 interface AssignmentInformationProps {
     courseId: string;
@@ -68,31 +69,40 @@ const AssignmentInformation = ({
         }
     };
 
+    const { data: session } = useSession();
+
+    if (!session?.user) {
+        return null;
+    }
+
+    const cleanUrl = assignment.repositoryUrl!.replace(/\.git$/, "");
+    const studentBranch = `${cleanUrl}/tree/student/${session.user.github_login}`;
+
     return (
         <div className="border bg-white border-gray-900/25 rounded-md m-4 p-4">
             <h2 className="text-lg font-semibold mb-2 p-2">Рішення</h2>
 
-            <div className="grid grid-cols-1 gap-y-4 md:grid-cols-3 md:gap-x-4 mb-2">
-                <div className="col-span-1">
+            <div className="grid grid-cols-1 gap-y-4 md:grid-cols-5 md:gap-x-4 mb-2">
+                <div className="col-span-2">
                     <AssignmentInfoBlock
                         icon={FolderGit2}
                         title="Мій репозиторій"
                         variant="default"
-                        url={assignment.repositoryUrl}
+                        url={studentBranch}
                         action={
-                            <div className="py-2 text-slate-900 font-semibold">
+                            <div className="py-2 mt-1.5 text-sm text-slate-900 font-semibold">
                                 {assignment.repositoryName!}
                             </div>
                         }
                     />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-3">
                     <AssignmentInfoBlock
                         icon={GitBranch}
                         title="Гілка"
                         variant="default"
                         action={
-                            <div className="w-full flex flex-row items-center gap-1">
+                            <div className="w-full text-sm flex flex-row items-center gap-1">
                                 <GitHubBranchForm
                                     initialData={{ branchName: attempt?.branchName }}
                                     courseId={courseId}

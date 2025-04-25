@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import Login from "@/app/(auth)/_components/login";
 import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
+import {fetchWithAuth} from "@/lib/fetchWithAuth";
 
 const signingErrors: Record<string | "default", string> = {
     // ...
@@ -16,7 +17,13 @@ export default async function Signin({ searchParams }: SignInPageProp) {
     const { callbackUrl, error } = await searchParams;
     const session = await getServerSession(authOptions);
 
-    if (session) {
+    if (session && session.accessToken) {
+        await fetchWithAuth({
+            method: "PUT",
+            token: session.accessToken,
+            url: `${process.env.NEXT_PUBLIC_API_URL}/api/users`,
+        });
+
         redirect(callbackUrl || "/");
     }
 
