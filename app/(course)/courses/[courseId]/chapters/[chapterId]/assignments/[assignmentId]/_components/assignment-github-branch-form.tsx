@@ -130,7 +130,6 @@ export const GitHubBranchForm = ({
                 <Button onClick={toggleEditing} variant="ghost" className="px-1 mr-1">
                     {isEditing ? <X className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
-                {isSubmitting && <p className="text-sm text-gray-500 mt-1 px-4">Зачекайте, відправка даних...</p>}
             </div>
         </div>
     );

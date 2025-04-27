@@ -3,7 +3,7 @@
 declare module "next-auth" {
     interface Session {
         user: DefaultSession["user"] & {
-            login?: string;
+            github_login?: string;
         };
         accessToken?: string;
     }
@@ -15,7 +15,7 @@ declare module "next-auth/jwt" {
         refreshToken?: string;
         expiresAt?: number;
         avatar_url?: string;
-        login?: string;
+        github_login?: string;
     }
 }
 

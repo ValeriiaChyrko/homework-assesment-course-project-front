@@ -4,7 +4,9 @@ import { NextResponse } from "next/server";
 import {authOptions} from "@/app/api/auth/[...nextauth]/auth-options";
 
 interface AccessTokenData {
-    groups: string[];
+    realm_access?: {
+        roles?: string[];
+    };
 }
 
 export async function GET() {
@@ -16,9 +18,9 @@ export async function GET() {
     }
 
     const decodedToken:AccessTokenData = jwtDecode(token);
-    const groups = decodedToken.groups || [];
+    const roles = decodedToken.realm_access?.roles || [];
 
-    const isTeacher = groups.includes("Teachers");
+    const isTeacher = roles.includes("Teacher");
 
     return new Response(JSON.stringify({ isTeacher }), {
         status: 200,

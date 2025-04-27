@@ -44,7 +44,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ courseI
             payload: {
                 repoTitle: assignment.repositoryName,
                 ownerGitHubUsername: assignment.repositoryOwner,
-                authorGitHubUsername: session.user.login,
+                authorGitHubUsername: session.user.github_login,
             },
         });
 

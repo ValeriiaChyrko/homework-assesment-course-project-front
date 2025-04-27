@@ -21,11 +21,13 @@ import toast from "react-hot-toast";
 import {cn} from "@/lib/utils";
 import {useQueryClient} from "@tanstack/react-query";
 
+
 interface AssignmentGitHubRepoTitleFormProps {
     initialData: {
         repositoryUrl: string;
         repositoryOwner: string;
         repositoryName: string;
+        repositoryBaseBranchName: string;
     };
     courseId: string;
     chapterId: string;
@@ -46,6 +48,10 @@ const formSchema = z.object({
         .refine(url => /^https:\/\/github\.com\/[^\/]+\/[^\/]+$/.test(url), {
             message: "URL має бути у форматі 'https://github.com/owner/repository'.git",
         }),
+    repositoryBaseBranchName: z.string().trim()
+        .min(1, {
+            message: "Необхідно вказати базову гілку GitHub репозиторія.",
+        })
 });
 
 export const AssignmentGithubRepoUrlForm= ({ initialData, courseId, chapterId, assignmentId }: AssignmentGitHubRepoTitleFormProps) => {
@@ -57,6 +63,7 @@ export const AssignmentGithubRepoUrlForm= ({ initialData, courseId, chapterId, a
         resolver: zodResolver(formSchema),
         defaultValues: {
             repositoryUrl: initialData.repositoryUrl || '',
+            repositoryBaseBranchName: initialData.repositoryBaseBranchName || 'main',
         },
     });
 
@@ -119,6 +126,14 @@ export const AssignmentGithubRepoUrlForm= ({ initialData, courseId, chapterId, a
                             <span className="text-slate-500 italic">Назву не вказано</span>
                         )}
                     </div>
+                    <div>
+                        <span>Базова гілка: </span>
+                        {initialData.repositoryBaseBranchName ? (
+                            <span className="font-semibold">{initialData.repositoryBaseBranchName}</span>
+                        ) : (
+                            <span className="text-slate-500 italic">Базову гілку не вказано</span>
+                        )}
+                    </div>
                 </div>
             )}
             {isEditing && (
@@ -133,6 +148,20 @@ export const AssignmentGithubRepoUrlForm= ({ initialData, courseId, chapterId, a
                                             className="w-full p-3 rounded-lg border border-gray-400"
                                             aria-label="Поле введення URL завдання:Наприклад, 'https://github.com/<owner>/<repository>.git'"
                                             {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage className="text-pink-600" />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="repositoryBaseBranchName" render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <Input
+                                        disabled={isSubmitting}
+                                        placeholder="Наприклад, 'main'"
+                                        className="w-full p-3 rounded-lg border border-gray-400"
+                                        aria-label="Поле введення базової гілки:Наприклад, 'main'"
+                                        {...field}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-pink-600" />

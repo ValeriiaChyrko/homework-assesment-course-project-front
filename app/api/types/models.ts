@@ -55,6 +55,7 @@ interface Assignment {
     title: string;
     description?: string;
     repositoryName?: string;
+    repositoryBaseBranchName?: string;
     repositoryOwner?: string;
     repositoryUrl?: string;
     deadline: Date;

@@ -4,7 +4,7 @@ import { JWT } from "next-auth/jwt";
 import { jwtDecode } from "jwt-decode";
 
 interface AccessTokenData {
-    login: string;
+    github_login: string;
     avatar_url: string;
 }
 
@@ -57,7 +57,7 @@ export const authOptions: AuthOptions = {
 
                 const decodedToken: AccessTokenData = jwtDecode(account.access_token!);
                 token.avatar_url = decodedToken.avatar_url;
-                token.login = decodedToken.login;
+                token.github_login = decodedToken.github_login;
 
                 return token;
             }
@@ -84,7 +84,7 @@ export const authOptions: AuthOptions = {
         async session({ session, token }) {
             if (session.user) {
                 session.user.image = token.avatar_url;
-                session.user.login = token.login;
+                session.user.github_login = token.github_login;
             }
             session.accessToken = token.accessToken;
             return session;

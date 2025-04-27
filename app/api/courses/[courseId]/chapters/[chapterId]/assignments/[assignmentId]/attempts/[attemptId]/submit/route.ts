@@ -42,7 +42,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ courseId
             token,
             url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts/${attemptId}/submit`,
             payload: {
-                AuthorGitHubUsername: session.user.login,
+                AuthorGitHubUsername: session.user.github_login,
                 Attempt: {
                     ...attempt
                 },
