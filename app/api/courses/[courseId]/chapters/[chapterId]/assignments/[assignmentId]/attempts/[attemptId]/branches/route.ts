@@ -43,6 +43,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ courseI
             url: `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/chapters/${chapterId}/assignments/${assignmentId}/attempts/${attemptId}/branches`,
             payload: {
                 repoTitle: assignment.repositoryName,
+                baseBranch: assignment.repositoryBaseBranchName,
                 ownerGitHubUsername: assignment.repositoryOwner,
                 authorGitHubUsername: session.user.github_login,
             },

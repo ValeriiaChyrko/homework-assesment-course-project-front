@@ -21,7 +21,7 @@ export default async function Signin({ searchParams }: SignInPageProp) {
         await fetchWithAuth({
             method: "PUT",
             token: session.accessToken,
-            url: `${process.env.NEXT_PUBLIC_API_URL}/api/users`,
+            url: `${process.env.API_URL}/api/users`,
         });
 
         redirect(callbackUrl || "/");

@@ -42,7 +42,6 @@ const AnalyticsPage = () => {
         chapterId: string;
         assignmentId: string;
     }) => {
-        console.log("Форма надіслана з:", formData);
         setCourseId(formData.courseId);
         setChapterId(formData.chapterId);
         setAssignmentId(formData.assignmentId);
